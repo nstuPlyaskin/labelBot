@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from func import support, artistInfo, addRelease
+from func import artistInfo, addRelease, supportChatSender
   # Импортируем файл с обработчиками поддержки из подпапки func
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
@@ -25,7 +25,7 @@ def handle_start(message):
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=keyboard)
 
 # Вызываем функцию для настройки обработчика поддержки
-support.setup_support_handler(bot)
+supportChatSender.setup_support_handler(bot)
 
 # Вызываем функцию для настройки обработчика инфо по артисту
 artistInfo.setup_artistInfo_handler(bot)
