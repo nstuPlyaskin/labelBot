@@ -45,6 +45,13 @@ def setup_support_handler(bot):
             bot.send_message(message.chat.id, "Извините, но эта команда не может быть отправлена в поддержку. Для отмены используйте кнопку 'Отмена'")
             return
 
+        # Проверяем, не является ли вопрос текстом "Отмена"
+        if user_question.lower() == "отмена":
+            # Если пользователь написал "Отмена", завершаем обработку запроса
+            awaiting_question.pop(message.chat.id, None)
+            bot.send_message(message.chat.id, "Отправка в поддержку отменена.")
+            return
+
         # Отправляем информацию в чат поддержки
         support_message = f"Пользователь {message.chat.first_name} {message.chat.last_name} (ID {message.chat.id}) отправил вопрос: {user_question}"
         bot.send_message(CHAT_ID_SUPPORT, support_message)
