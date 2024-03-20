@@ -3,11 +3,12 @@ from aiogram import types
 from func.dbAction import DB
 import os
 
+#todo fix cancel button  
 
 db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
 conn = None  # Объявляем переменную conn
 
-CHAT_ID_SUPPORT = '-1002082264985'
+already_sent_error = False
 
 # Список команд для управления
 MANAGEMENT_COMMANDS = ['Информация об артисте', 'Загрузить новый релиз']
@@ -65,6 +66,12 @@ def setup_support_handler(bot):
                 return
 
         if message.content_type == 'photo':
+
+            if message.media_group_id:
+                bot.send_message(message.chat.id, "Извините, но вы можете отправить только одно фото в поддержку. Для отмены нажмите повторно на 'Поддержка' в меню чата.")
+                return
+            pass
+
             # Получаем идентификатор фото
             photo_id = message.photo[-1].file_id
 
@@ -85,15 +92,6 @@ def setup_support_handler(bot):
     def send_support_photo_message(message):
         # Здесь можно добавить код для отправки сообщения с фото в поддержку
         pass
-
-    def send_support_text_message(message, user_question):
-        # Truncate the message if it exceeds the maximum allowed length
-        max_message_length = 4096  # Telegram API maximum message length
-        if len(user_question) > max_message_length:
-            user_question = user_question[:max_message_length]
-
-        support_message = f"Пользователь {message.chat.first_name} {message.chat.last_name} (UID {message.chat.id}) отправил вопрос: {user_question}"
-        bot.send_message(CHAT_ID_SUPPORT, support_message)
 
     @bot.callback_query_handler(func=lambda call: call.data == "cancel")
     def cancel_support(call):
