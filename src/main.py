@@ -1,12 +1,7 @@
 import telebot
 from telebot import types
-from func import artistInfo, addRelease, supportChatSender
+from func import artistInfo, addRelease, supportChatSender, admQuestions
   # Импортируем файл с обработчиками поддержки из подпапки func
-
-# двухсвязный список с вопросом и чат ид откуда высрали
-# сделать команды вопросы которые все это выводит и команду ответ которая по чат ид сможет отвечать
-# после ответа удаляем ебаный впопрос из списка
-# ХУЙНЯЯЯ ГОВНО!!!!!!!!)))))))))))))))))))))))) СВО
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
@@ -28,6 +23,10 @@ def handle_start(message):
 
     # Отправляем сообщение с клавиатурой
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=keyboard)
+
+@bot.message_handler(commands=['questions', 'q'])
+def handle_questions(message):
+    admQuestions.setup_admQuestions_handler(bot, message)
 
 # Вызываем функцию для настройки обработчика поддержки
 supportChatSender.setup_support_handler(bot)
