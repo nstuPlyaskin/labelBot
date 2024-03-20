@@ -82,7 +82,7 @@ def setup_support_handler(bot):
         db_handler = DB(db_path)
 
         # Сохраняем текст и/или фото в базу данных
-        db_handler.addQuestion(message)
+        db_handler.addQuestion(bot, message)
 
         db_handler.close()
 

@@ -1,8 +1,11 @@
 import sqlite3
 import os
+import json
+from telebot.apihelper import ApiTelegramException
 
 # Получаем абсолютный путь к файлу базы данных
 db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+whitelist_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'whitelist.json')
 
 #     # ПРИМЕР ВЫВОДА ИЗОБРАЖЕНИЯ
 #     # file_id = "AgACAgIAAxkBAAIOJmX64yoV2HZ0t9FCVRaf45YwE8VmAAIO1jEbjpbYS9Na8qN5uHGQAQADAgADeQADNAQ"
@@ -16,9 +19,8 @@ class DB:
         self.cursor = self.conn.cursor()
 
     # add records into db
-    def addQuestion(self, message):
-
-         # Получаем информацию о сообщении
+    def addQuestion(self, bot, message):
+        # Получаем информацию о сообщении
         uid = message.from_user.id
         userName = message.from_user.username
         userQuestion = message.caption if message.caption else (message.text if message.text else "")
@@ -26,10 +28,24 @@ class DB:
 
         # Запись в бд
         self.cursor.execute("INSERT INTO supportTable (uid, userName, userQuestion, userMedia) VALUES (?, ?, ?, ?)",
-                       (uid, userName, userQuestion, userMedia))
+                    (uid, userName, userQuestion, userMedia))
         
         print("ADDED NEW QUESTION: \n uid: ", uid, "userName: ", userName, "userQuestion: ", userQuestion, "userMedia: ", userMedia)
-        return self.conn.commit()
+        self.conn.commit()
+
+        # Оповещение пользователей из whitelist.json о новом вопросе
+        with open(whitelist_path, "r") as f:
+            whitelist_data = json.load(f)
+            allowed_users = whitelist_data.get("allowed_users", [])  # Получаем список разрешенных пользователей
+            for user_id in allowed_users:
+                try:
+                    bot.send_message(chat_id=user_id, text="Появился новый вопрос в базе данных поддержки!")
+                except ApiTelegramException as e:
+                    print(f"Failed to send message to user {user_id}: {e}")
+                    # Можно сделать что-то еще, например, отправить себе уведомление о проблеме
+                    pass
+
+        return
     
     def showQuestions(self, bot, message):
         # Получаем количество актуальных вопросов в базе данных
@@ -45,7 +61,7 @@ class DB:
 
             # Отправляем сообщение с подписью к изображению, если userMedia не пустое
             if usermedia:
-                bot.send_photo(chat_id=message.chat.id, photo=usermedia, caption=f"Вопрос №{id} от пользователя: {username}\n\nQuestion: {question}\n\nВопрос был задан {date}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
+                bot.send_photo(chat_id=message.chat.id, photo=usermedia, caption=f"Вопрос №{id} от пользователя: {username}\n\nQuestion: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
             # Иначе отправляем текстовое сообщение
             else:
                 bot.send_message(chat_id=message.chat.id, text=f"Вопрос №{id} от пользователя: {username}\n\nQuestion: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
