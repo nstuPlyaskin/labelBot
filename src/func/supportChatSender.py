@@ -1,5 +1,11 @@
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
+from func.dbAction import DB
+import os
+
+
+db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+conn = None  # Объявляем переменную conn
 
 CHAT_ID_SUPPORT = '-1002082264985'
 
@@ -48,22 +54,37 @@ def setup_support_handler(bot):
 
     def process_support_question(message, awaiting_question):
         user_question = None  # Инициализируем переменную для текстовой части (если есть)
+        photo_id = None  # Инициализируем переменную для идентификатора фото (если есть)
 
         if message.content_type == 'text':
             user_question = message.text
             if not is_management_command(user_question):  # Исправление: проверка на команду для управления
-                send_support_text_message(message, user_question)
+                pass  # Мы уже сохраняем текст в базу данных ниже
             else:
                 bot.send_message(message.chat.id, "Извините, но эта команда не может быть отправлена в поддержку. Для отмены нажмите повторно на 'Поддержка' в меню чата.")
                 return
-        elif message.content_type == 'photo':
-            # Обрабатываем отправленное фото
-            user_question = "\n"
-            send_support_photo_message(message, user_question)
+
+        if message.content_type == 'photo':
+            # Получаем идентификатор фото
+            photo_id = message.photo[-1].file_id
 
         # Очищаем флаг ожидания вопроса
         awaiting_question[message.chat.id] = False
+
+        # ADD TO DB HERE
+        db_handler = DB(db_path)
+
+        # Сохраняем текст и/или фото в базу данных
+        db_handler.addQuestion(message)
+
+        db_handler.close()
+
         bot.send_message(message.chat.id, "Ваш вопрос отправлен в поддержку. Мы просматриваем каждый вопрос и ответим вам в ближайшее время.")
+
+
+    def send_support_photo_message(message):
+        # Здесь можно добавить код для отправки сообщения с фото в поддержку
+        pass
 
     def send_support_text_message(message, user_question):
         # Truncate the message if it exceeds the maximum allowed length
@@ -73,20 +94,6 @@ def setup_support_handler(bot):
 
         support_message = f"Пользователь {message.chat.first_name} {message.chat.last_name} (UID {message.chat.id}) отправил вопрос: {user_question}"
         bot.send_message(CHAT_ID_SUPPORT, support_message)
-
-    def send_support_photo_message(message, user_question):
-        # Отправляем фото в чат поддержки
-        photo_id = message.photo[-1].file_id  # Получаем ID файла последней фотографии (по умолчанию отправляется самая большая)
-        support_message = f"Пользователь {message.from_user.first_name} {message.from_user.last_name} (ID {message.from_user.id}) отправил вопрос:"
-
-        # Проверяем, есть ли текст (caption) у фото
-        if message.caption:
-            user_question += f"\nТекст: {message.caption}"
-
-        # Добавляем текстовую часть к сообщению перед отправкой фото
-        support_message += f"\n{user_question}"
-
-        bot.send_photo(CHAT_ID_SUPPORT, photo_id, caption=support_message)
 
     @bot.callback_query_handler(func=lambda call: call.data == "cancel")
     def cancel_support(call):

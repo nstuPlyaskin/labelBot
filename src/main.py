@@ -3,6 +3,11 @@ from telebot import types
 from func import artistInfo, addRelease, supportChatSender
   # Импортируем файл с обработчиками поддержки из подпапки func
 
+# двухсвязный список с вопросом и чат ид откуда высрали
+# сделать команды вопросы которые все это выводит и команду ответ которая по чат ид сможет отвечать
+# после ответа удаляем ебаный впопрос из списка
+# ХУЙНЯЯЯ ГОВНО!!!!!!!!)))))))))))))))))))))))) СВО
+
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
 @bot.message_handler(commands=['start', 'help', 'menu'])
