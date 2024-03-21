@@ -13,6 +13,6 @@ def setup_artistInfo_handler(bot: TeleBot, message):
         bot.reply_to(message, "Для загрузки релиза необходимо добавить в нашу систему никнейм артиста.", 
                      reply_markup=get_add_artist_keyboard())
     else:
-        bot.reply_to(message, "Добро пожаловать", reply_markup=get_existing_artist_keyboard())
+        bot.reply_to(message, "Выберите опцию:", reply_markup=get_existing_artist_keyboard())
 
     db.close()
