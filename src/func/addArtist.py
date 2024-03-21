@@ -1,10 +1,10 @@
 from telebot import TeleBot, types
 from telebot.types import Message
 from func.dbAction import DB
-import os
-from func.artistInfo import get_existing_artist_keyboard
+from func.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard
 
-# Путь к базе данных
+import os
+
 db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
 
 # Переменные для хранения вопросов и соответствующих им ключей
@@ -50,7 +50,7 @@ def save_user_answer(message: Message, bot: TeleBot):
     
     # Проверяем, написал ли пользователь "Отмена"
     if message.text.strip().lower() == "отмена":
-        bot.send_message(message.chat.id, "Процедура создания артиста отменена.", reply_markup=types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, "Процедура создания артиста отменена.", reply_markup=get_main_keyboard())
         return
     
     current_key = keys[current_question_index]
@@ -67,7 +67,6 @@ def save_user_answer(message: Message, bot: TeleBot):
     current_question_index += 1
     send_next_question(bot, message)
 
-
 # Функция для начала процедуры создания нового артиста
 def setup_addArtist_handler(bot: TeleBot, message: Message):
     global current_question_index, user_data
@@ -76,10 +75,3 @@ def setup_addArtist_handler(bot: TeleBot, message: Message):
     keyboard = get_cancel_keyboard()
     bot.send_message(message.chat.id, "Начата процедура создания нового артиста, для отмены напишите 'Отмена'.", reply_markup=keyboard)
     send_next_question(bot, message)
-
-# Функция для получения клавиатуры с кнопкой "Отмена"
-def get_cancel_keyboard():
-    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    button_cancel = types.KeyboardButton(text="Отмена")
-    keyboard.add(button_cancel)
-    return keyboard

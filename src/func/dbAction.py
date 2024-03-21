@@ -9,12 +9,13 @@ db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
 whitelist_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'whitelist.json')
 
 class DB:
-    #init db
     def __init__(self, db_file):
-        self.conn = sqlite3.connect(db_file)
-        self.cursor = self.conn.cursor()
+        try:
+            self.conn = sqlite3.connect(db_file)
+            self.cursor = self.conn.cursor()
+        except sqlite3.Error as e:
+            print(f"Ошибка при подключении к базе данных: {e}")
 
-    # @BUG - кажется проверяется не uid а артист нейм или я хз
     def checkArtistExists(self, artist_nickname):
         self.cursor.execute("SELECT * FROM artistsTable WHERE artistNickName = ?", (artist_nickname,))
         return self.cursor.fetchone() is not None
@@ -23,8 +24,6 @@ class DB:
         self.cursor.execute("SELECT * FROM artistsTable WHERE uid = ?", (uid,))
         return self.cursor.fetchone() is not None
 
-#~~~# ADMIN PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-    # add records into db
     def addQuestion(self, bot, message):
         # Получаем информацию о сообщении
         uid = message.from_user.id
@@ -53,7 +52,6 @@ class DB:
 
         return
     
-    # show questions from users
     def showQuestions(self, bot, message):
         # Получаем количество актуальных вопросов в базе данных
         self.cursor.execute("SELECT COUNT(*) FROM supportTable WHERE isActual = 1")
@@ -75,7 +73,6 @@ class DB:
         else:
             bot.send_message(chat_id=message.chat.id, text="На данный момент вопросов нет.")
 
-    # get answer to uesr question
     def getAnswer(self, bot, message):
         # Разбиваем сообщение на аргументы (номер вопроса и текст ответа)
         args = message.text.split(maxsplit=2)
@@ -106,30 +103,31 @@ class DB:
         else:
             bot.reply_to(message, "Вопрос с указанным номером не найден.")
 
-    # show list of all users
     def showUsers(self, bot, message):
-        # Выполняем запрос для извлечения уникальных пользователей
-        self.cursor.execute("SELECT DISTINCT userName, uid FROM supportTable")
-        users = self.cursor.fetchall()
+        try:
+            # Выполняем запрос для извлечения уникальных пользователей
+            self.cursor.execute("SELECT DISTINCT userName, uid FROM supportTable")
+            users = self.cursor.fetchall()
 
-        # Проверяем, есть ли пользователи в базе данных
-        if users:
-            # Множество для отслеживания уже выведенных пользователей
-            displayed_users = set()
-            
-            # Формируем строку для каждого уникального пользователя
-            user_list = ""
-            for user in users:
-                # Проверяем, был ли пользователь уже выведен
-                if user not in displayed_users:
-                    user_list += f"Username: {user[0]}, UID: {user[1]}\n"
-                    displayed_users.add(user)  # Добавляем пользователя в множество уже выведенных
-            # Отправляем список пользователей
-            bot.send_message(chat_id=message.chat.id, text="Список уникальных пользователей:\n\n" + user_list)
-        else:
-            bot.send_message(chat_id=message.chat.id, text="В базе данных нет пользователей.")
+            # Проверяем, есть ли пользователи в базе данных
+            if users:
+                # Множество для отслеживания уже выведенных пользователей
+                displayed_users = set()
+                
+                # Формируем строку для каждого уникального пользователя
+                user_list = ""
+                for user in users:
+                    # Проверяем, был ли пользователь уже выведен
+                    if user not in displayed_users:
+                        user_list += f"Username: {user[0]}, UID: {user[1]}\n"
+                        displayed_users.add(user)  # Добавляем пользователя в множество уже выведенных
+                # Отправляем список пользователей
+                bot.send_message(chat_id=message.chat.id, text="Список уникальных пользователей:\n\n" + user_list)
+            else:
+                bot.send_message(chat_id=message.chat.id, text="В базе данных нет пользователей.")
+        except sqlite3.Error as e:
+            print(f"Ошибка при получении списка пользователей: {e}")
 
-    # send message to UID
     def sendMessage(self, bot, message):
         # Разбиваем сообщение на аргументы
         args = message.text.split(maxsplit=2)
@@ -154,27 +152,27 @@ class DB:
 #~~~# ARTIST PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
     def addArtist(self, artist_data):
-            try:
-                # Формируем SQL-запрос для вставки данных в таблицу
-                query = "INSERT INTO artistsTable (uid, artistNickName, artistRealName, artistSpotify, artistContacts) VALUES (?, ?, ?, ?, ?)"
-                
-                # Получаем значения из словаря artist_data
-                values = (artist_data["uid"], artist_data["artistNickName"], artist_data["artistRealName"], artist_data["artistSpotify"], artist_data["artistContacts"])
-                
-                # Выполняем запрос
-                self.cursor.execute(query, values)
-                
-                # Подтверждаем изменения в базе данных
-                self.conn.commit()
-                
-                # Возвращаем True, если операция выполнена успешно
-                return True
-            except Exception as e:
-                print("Ошибка при добавлении артиста:", e)
-                return False
-            finally:
-                # Закрываем соединение с базой данных
-                self.conn.close()
+        try:
+            # Формируем SQL-запрос для вставки данных в таблицу
+            query = "INSERT INTO artistsTable (uid, artistNickName, artistRealName, artistSpotify, artistContacts) VALUES (?, ?, ?, ?, ?)"
+            
+            # Получаем значения из словаря artist_data
+            values = (artist_data["uid"], artist_data["artistNickName"], artist_data["artistRealName"], artist_data["artistSpotify"], artist_data["artistContacts"])
+            
+            # Выполняем запрос
+            self.cursor.execute(query, values)
+            
+            # Подтверждаем изменения в базе данных
+            self.conn.commit()
+            
+            # Возвращаем True, если операция выполнена успешно
+            return True
+        except sqlite3.Error as e:
+            print("Ошибка при добавлении артиста:", e)
+            return False
+        finally:
+            # Закрываем соединение с базой данных
+            self.conn.close()
 
     def check_artist_exists(self, artist_nickname):
         # Выполняем запрос к базе данных, чтобы проверить существование артиста с указанным никнеймом
@@ -189,7 +187,7 @@ class DB:
             self.cursor.execute("SELECT artistNickName FROM artistsTable WHERE uid=?", (uid,))
             artist_list = [row[0] for row in self.cursor.fetchall()]
             return artist_list
-        except Exception as e:
+        except sqlite3.Error as e:
             print("Ошибка при получении списка артистов:", e)
             return []
         finally:
