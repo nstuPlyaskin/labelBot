@@ -2,15 +2,11 @@ import sqlite3
 import os
 import json
 from telebot.apihelper import ApiTelegramException
+from telebot import types
 
-# Получаем абсолютный путь к файлу базы данных
+# Получаем абсолютный путь к файлу базы данных и вайтлисту
 db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
 whitelist_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'whitelist.json')
-
-#     # ПРИМЕР ВЫВОДА ИЗОБРАЖЕНИЯ
-#     # file_id = "AgACAgIAAxkBAAIOJmX64yoV2HZ0t9FCVRaf45YwE8VmAAIO1jEbjpbYS9Na8qN5uHGQAQADAgADeQADNAQ"
-#     # bot.send_photo(message.chat.id, file_id)
-
 
 class DB:
     #init db
@@ -18,6 +14,12 @@ class DB:
         self.conn = sqlite3.connect(db_file)
         self.cursor = self.conn.cursor()
 
+    # @BUG - кажется проверяется не uid а артист нейм или я хз
+    def checkArtistExists(self, artist_nickname):
+        self.cursor.execute("SELECT * FROM artistsTable WHERE artistNickName = ?", (artist_nickname,))
+        return self.cursor.fetchone() is not None
+
+#~~~# ADMIN PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # add records into db
     def addQuestion(self, bot, message):
         # Получаем информацию о сообщении
@@ -30,7 +32,7 @@ class DB:
         self.cursor.execute("INSERT INTO supportTable (uid, userName, userQuestion, userMedia) VALUES (?, ?, ?, ?)",
                     (uid, userName, userQuestion, userMedia))
         
-        print("ADDED NEW QUESTION: \n uid: ", uid, "userName: ", userName, "userQuestion: ", userQuestion, "userMedia: ", userMedia)
+        print("\n\nADDED NEW QUESTION: \nUID:", uid, "\nNAME:", userName, "\nQUESTION:", userQuestion, "\nMEDIA:", userMedia, "\n")
         self.conn.commit()
 
         # Оповещение пользователей из whitelist.json о новом вопросе
@@ -41,7 +43,7 @@ class DB:
                 try:
                     bot.send_message(chat_id=user_id, text="Появился новый вопрос в базе данных поддержки!")
                 except ApiTelegramException as e:
-                    print(f"Failed to send message to user {user_id}: {e}")
+                    print(f"Ошибка отправки сообщения пользователю {user_id}: {e}")
                     # Можно сделать что-то еще, например, отправить себе уведомление о проблеме
                     pass
 
@@ -62,10 +64,10 @@ class DB:
 
             # Отправляем сообщение с подписью к изображению, если userMedia не пустое
             if usermedia:
-                bot.send_photo(chat_id=message.chat.id, photo=usermedia, caption=f"Вопрос №{id} от пользователя: {username}\n\nQuestion: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
+                bot.send_photo(chat_id=message.chat.id, photo=usermedia, caption=f"Вопрос №{id} от пользователя: {username}\nВопрос: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
             # Иначе отправляем текстовое сообщение
             else:
-                bot.send_message(chat_id=message.chat.id, text=f"Вопрос №{id} от пользователя: {username}\n\nQuestion: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
+                bot.send_message(chat_id=message.chat.id, text=f"Вопрос №{id} от пользователя: {username}\nВопрос: {question}\n\nОсталось вопросов в очереди: {total_questions - 1}\nВопрос был задан {date}\n\nДля ответа используйте /answer (номер вопроса) и текст ответа.\nПример: /answer 69 Здравствуйте, я ответил на ваш вопрос.")
         else:
             bot.send_message(chat_id=message.chat.id, text="На данный момент вопросов нет.")
 
@@ -123,6 +125,7 @@ class DB:
         else:
             bot.send_message(chat_id=message.chat.id, text="В базе данных нет пользователей.")
 
+    # send message to UID
     def sendMessage(self, bot, message):
         # Разбиваем сообщение на аргументы
         args = message.text.split(maxsplit=2)
@@ -144,7 +147,36 @@ class DB:
             bot.reply_to(message, f"Не удалось отправить сообщение пользователю с UID {uid}. Пожалуйста, проверьте правильность UID и повторите попытку.")
             print(f"Failed to send message to user with UID {uid}: {e}")
 
+#~~~# ARTIST PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-    
-    def close (self):
+    def addArtist(self, artist_data):
+            try:
+                # Формируем SQL-запрос для вставки данных в таблицу
+                query = "INSERT INTO artistsTable (uid, artistNickName, artistRealName, artistSpotify, artistContacts) VALUES (?, ?, ?, ?, ?)"
+                
+                # Получаем значения из словаря artist_data
+                values = (artist_data["uid"], artist_data["artistNickName"], artist_data["artistRealName"], artist_data["artistSpotify"], artist_data["artistContacts"])
+                
+                # Выполняем запрос
+                self.cursor.execute(query, values)
+                
+                # Подтверждаем изменения в базе данных
+                self.conn.commit()
+                
+                # Возвращаем True, если операция выполнена успешно
+                return True
+            except Exception as e:
+                print("Ошибка при добавлении артиста:", e)
+                return False
+            finally:
+                # Закрываем соединение с базой данных
+                self.conn.close()
+
+    def check_artist_exists(self, artist_nickname):
+        # Выполняем запрос к базе данных, чтобы проверить существование артиста с указанным никнеймом
+        self.cursor.execute("SELECT COUNT(*) FROM artistsTable WHERE artistNickName=?", (artist_nickname,))
+        count = self.cursor.fetchone()[0]
+        return count > 0
+
+    def close(self):
         self.conn.close()
