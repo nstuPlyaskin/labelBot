@@ -181,6 +181,20 @@ class DB:
         self.cursor.execute("SELECT COUNT(*) FROM artistsTable WHERE artistNickName=?", (artist_nickname,))
         count = self.cursor.fetchone()[0]
         return count > 0
+    
+    # show aritst list by user UID
+    def artistList(self, uid):
+        try:
+            # Получаем список артистов для данного UID
+            self.cursor.execute("SELECT artistNickName FROM artistsTable WHERE uid=?", (uid,))
+            artist_list = [row[0] for row in self.cursor.fetchall()]
+            return artist_list
+        except Exception as e:
+            print("Ошибка при получении списка артистов:", e)
+            return []
+        finally:
+            # Закрываем соединение с базой данных
+            self.conn.close()
 
     def close(self):
         self.conn.close()

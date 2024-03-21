@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from func import artistInfo, addRelease, supportChatSender, admQuestions, admAnswer, admUserList, admMessage, addArtist
+from func import artistInfo, addRelease, supportChatSender, admQuestions, admAnswer, admUserList, admMessage, addArtist, artistList
   # Импортируем файл с обработчиками поддержки из подпапки func
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
@@ -13,7 +13,7 @@ def handle_add_artist(message):
 # Функция обработки нажатия кнопки "Список артистов"
 @bot.message_handler(func=lambda message: message.text == "Список артистов")
 def handle_list_artists(message):
-    print("Кнопка 2")
+    artistList.setup_artistList_handler(bot, message)
 
 # Функция обработки нажатия кнопки "Список релизов"
 @bot.message_handler(func=lambda message: message.text == "Список релизов")
