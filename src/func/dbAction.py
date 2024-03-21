@@ -47,6 +47,7 @@ class DB:
 
         return
     
+    # show questions from users
     def showQuestions(self, bot, message):
         # Получаем количество актуальных вопросов в базе данных
         self.cursor.execute("SELECT COUNT(*) FROM supportTable WHERE isActual = 1")
@@ -68,7 +69,7 @@ class DB:
         else:
             bot.send_message(chat_id=message.chat.id, text="На данный момент вопросов нет.")
 
-
+    # get answer to uesr question
     def getAnswer(self, bot, message):
         # Разбиваем сообщение на аргументы (номер вопроса и текст ответа)
         args = message.text.split(maxsplit=2)
@@ -99,7 +100,7 @@ class DB:
         else:
             bot.reply_to(message, "Вопрос с указанным номером не найден.")
 
-
+    # show list of all users
     def showUsers(self, bot, message):
         # Выполняем запрос для извлечения уникальных пользователей
         self.cursor.execute("SELECT DISTINCT userName, uid FROM supportTable")
@@ -122,8 +123,28 @@ class DB:
         else:
             bot.send_message(chat_id=message.chat.id, text="В базе данных нет пользователей.")
 
+    def sendMessage(self, bot, message):
+        # Разбиваем сообщение на аргументы
+        args = message.text.split(maxsplit=2)
+        
+        # Проверяем, правильно ли введена команда
+        if len(args) < 3:
+            bot.reply_to(message, "Вы должны указать UID пользователя и текст сообщения. Пример: /message 123456 Привет, как дела?")
+            return
+        
+        # Извлекаем uid пользователя и текст сообщения
+        uid = args[1]
+        message_text = args[2]
+        
+        try:
+            # Пытаемся отправить сообщение пользователю с указанным uid
+            bot.send_message(chat_id=uid, text="У вас новое сообщение от поддержки ETALON MUSIC:\n\n" + message_text)
+            bot.reply_to(message, "Сообщение успешно отправлено.")
+        except ApiTelegramException as e:
+            bot.reply_to(message, f"Не удалось отправить сообщение пользователю с UID {uid}. Пожалуйста, проверьте правильность UID и повторите попытку.")
+            print(f"Failed to send message to user with UID {uid}: {e}")
 
 
-
+    
     def close (self):
         self.conn.close()
