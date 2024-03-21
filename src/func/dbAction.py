@@ -100,5 +100,30 @@ class DB:
             bot.reply_to(message, "Вопрос с указанным номером не найден.")
 
 
+    def showUsers(self, bot, message):
+        # Выполняем запрос для извлечения уникальных пользователей
+        self.cursor.execute("SELECT DISTINCT userName, uid FROM supportTable")
+        users = self.cursor.fetchall()
+
+        # Проверяем, есть ли пользователи в базе данных
+        if users:
+            # Множество для отслеживания уже выведенных пользователей
+            displayed_users = set()
+            
+            # Формируем строку для каждого уникального пользователя
+            user_list = ""
+            for user in users:
+                # Проверяем, был ли пользователь уже выведен
+                if user not in displayed_users:
+                    user_list += f"Username: {user[0]}, UID: {user[1]}\n"
+                    displayed_users.add(user)  # Добавляем пользователя в множество уже выведенных
+            # Отправляем список пользователей
+            bot.send_message(chat_id=message.chat.id, text="Список уникальных пользователей:\n\n" + user_list)
+        else:
+            bot.send_message(chat_id=message.chat.id, text="В базе данных нет пользователей.")
+
+
+
+
     def close (self):
         self.conn.close()

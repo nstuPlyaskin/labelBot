@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from func import artistInfo, addRelease, supportChatSender, admQuestions, admAnswer
+from func import admUserList, artistInfo, addRelease, supportChatSender, admQuestions, admAnswer
   # Импортируем файл с обработчиками поддержки из подпапки func
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
@@ -31,6 +31,10 @@ def handle_questions(message):
 @bot.message_handler(commands=['answer', 'a'])
 def handle_answer(message):
     admAnswer.setup_admAnswer_handler(bot, message)
+
+@bot.message_handler(commands=['users', 'u'])
+def handle_answer(message):
+    admUserList.setup_admMsg_handler(bot, message)
 
 # Вызываем функцию для настройки обработчика поддержки
 supportChatSender.setup_support_handler(bot)
