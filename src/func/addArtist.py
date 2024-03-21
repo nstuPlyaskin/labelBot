@@ -2,6 +2,7 @@ from telebot import TeleBot, types
 from telebot.types import Message
 from func.dbAction import DB
 import os
+from func.artistInfo import get_existing_artist_keyboard
 
 # Путь к базе данных
 db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
@@ -40,11 +41,10 @@ def send_next_question(bot: TeleBot, message: Message):
         db.close()
 
         if success:
-            bot.send_message(message.chat.id, "Артист успешно добавлен.")
-            print(user_data)
+            bot.send_message(message.chat.id, "Артист успешно добавлен.", reply_markup=get_existing_artist_keyboard())
         else:
             bot.send_message(message.chat.id, "Произошла ошибка при добавлении артиста.")
-            print(user_data)
+
 
 # Функция для сохранения ответа пользователя и перехода к следующему вопросу
 from func.dbAction import DB

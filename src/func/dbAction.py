@@ -18,6 +18,10 @@ class DB:
     def checkArtistExists(self, artist_nickname):
         self.cursor.execute("SELECT * FROM artistsTable WHERE artistNickName = ?", (artist_nickname,))
         return self.cursor.fetchone() is not None
+    
+    def checkUIDExists(self, uid):
+        self.cursor.execute("SELECT * FROM artistsTable WHERE uid = ?", (uid,))
+        return self.cursor.fetchone() is not None
 
 #~~~# ADMIN PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
     # add records into db

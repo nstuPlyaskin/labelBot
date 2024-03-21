@@ -14,7 +14,7 @@ def setup_artistInfo_handler(bot: TeleBot, message):
 
     # Проверяем наличие записи в таблице artistTable с UID текущего пользователя Telegram
     uid = message.from_user.id
-    if not db.checkArtistExists(uid):
+    if not db.checkUIDExists(uid):
         # Если запись отсутствует, предлагаем пользователю зарегистрировать нового артиста
         bot.reply_to(message, "Для загрузки релиза необходимо добавить в нашу систему никнейм артиста.", 
                      reply_markup=get_add_artist_keyboard())
