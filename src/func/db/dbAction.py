@@ -5,8 +5,8 @@ from telebot.apihelper import ApiTelegramException
 from telebot import types
 
 # Получаем абсолютный путь к файлу базы данных и вайтлисту
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
-whitelist_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'whitelist.json')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
+whitelist_path = os.path.join(os.path.dirname(__file__), '..','..', 'db', 'whitelist.json')
 
 class DB:
     def __init__(self, db_file):

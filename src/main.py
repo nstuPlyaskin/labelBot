@@ -1,6 +1,8 @@
 import telebot
-from func import artistInfo, addRelease, supportChatSender, admQuestions, admAnswer, admUserList, admMessage, addArtist, artistList
-from func.keyboard import get_main_keyboard
+from func.admin import admQuestions, admAnswer, admUserList, admMessage
+from func.artist import addArtist, addRelease, artistInfo, artistList
+from func.shared.keyboard import get_main_keyboard
+from func.support import supportChatSender
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 

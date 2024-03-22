@@ -1,10 +1,10 @@
 from telebot import types
 from telebot import TeleBot
-from func.dbAction import DB
+from ..db.dbAction import DB
 import os
-from func.keyboard import get_main_keyboard
+from func.shared.keyboard import get_main_keyboard
 
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 
 def setup_artistList_handler(bot: TeleBot, message):
     db = DB(db_path)

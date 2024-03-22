@@ -1,11 +1,11 @@
 from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
-from func.dbAction import DB
+from ..db.dbAction import DB
 import os
 
 #todo fix cancel button  
 
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 conn = None  # Объявляем переменную conn
 
 already_sent_error = False

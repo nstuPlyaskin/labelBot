@@ -1,9 +1,9 @@
 from telebot import TeleBot
-from func.dbAction import DB
-from func.keyboard import get_add_artist_keyboard, get_existing_artist_keyboard
+from ..db.dbAction import DB
+from func.shared.keyboard import get_add_artist_keyboard, get_existing_artist_keyboard
 import os
 
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 
 def setup_artistInfo_handler(bot: TeleBot, message):
     db = DB(db_path)

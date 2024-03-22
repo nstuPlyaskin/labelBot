@@ -1,11 +1,11 @@
 from telebot import TeleBot, types
 from telebot.types import Message
-from func.dbAction import DB
-from func.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard
+from ..db.dbAction import DB
+from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard
 
 import os
 
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 
 # Переменные для хранения вопросов и соответствующих им ключей
 questions = [

@@ -1,9 +1,9 @@
 from telebot import TeleBot
-from func.dbAction import DB
+from ..db.dbAction import DB
 import os, json
 
-db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'support')
-whitelist_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'whitelist.json')
+db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
+whitelist_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'whitelist.json')
 
 
 def is_user_allowed(user_id):
