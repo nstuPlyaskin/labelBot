@@ -194,5 +194,39 @@ class DB:
             # Закрываем соединение с базой данных
             self.conn.close()
 
+    # Добавляем метод для получения ID артиста по его никнейму
+    def get_artist_id(self, artist_nickname):
+        try:
+            self.cursor.execute("SELECT artistID FROM artistsTable WHERE artistNickName=?", (artist_nickname,))
+            artist_id = self.cursor.fetchone()
+            return artist_id[0] if artist_id else None
+        except sqlite3.Error as e:
+            print("Ошибка при получении ID артиста:", e)
+            return None
+        
+    # Сохраняем релиз в бд
+    def saveRelease(self, user_data):
+        try:
+            # Выполняем запрос к базе данных для сохранения данных о релизе
+            query = """
+                INSERT INTO releasesTable (
+                    artistID, artistNickName, feat, releaseName, releaseDate, releaseGenre, 
+                    releaseTiming, releaseExplicit, releaseLyrics, releaseLinkFiles
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+            values = tuple(user_data[key] for key in ['artistID', 'artistNickName', 'feat', 'releaseName', 'releaseDate', 
+                                                    'releaseGenre', 'releaseTiming', 'releaseExplicit', 
+                                                    'releaseLyrics', 'releaseLinkFiles'])
+            self.cursor.execute(query, values)
+            self.conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print("Ошибка при сохранении данных о релизе:", e)
+            return False
+        finally:
+            # Закрываем соединение с базой данных
+            self.conn.close()
+
+
     def close(self):
         self.conn.close()

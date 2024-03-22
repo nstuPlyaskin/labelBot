@@ -1,6 +1,6 @@
 import telebot
 from func.admin import admQuestions, admAnswer, admUserList, admMessage
-from func.artist import addArtist, addRelease, artistInfo, artistList
+from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
@@ -22,9 +22,9 @@ def handle_list_artists(message):
     else:
         artistInfo.setup_artistInfo_handler(bot, message)
 
-@bot.message_handler(func=lambda message: message.text == "Список релизов")
-def handle_list_releases(message):
-    print("Кнопка 3")
+@bot.message_handler(func=lambda message: message.text == "Загрузить новый релиз")
+def handle_add_release(message):
+    addRelease.setup_addRelease_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
 
 @bot.message_handler(func=lambda message: message.text == "Вернуться в меню")
 def handle_openMenu_releases(message):
@@ -55,6 +55,5 @@ def handle_start(message):
     show_help_cmd(bot, message)
 
 supportChatSender.setup_support_handler(bot)
-addRelease.setup_addRelease_handler(bot)
 
 bot.polling(none_stop=True)
