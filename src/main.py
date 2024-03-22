@@ -2,11 +2,12 @@ import telebot
 from func.admin import admQuestions, admAnswer, admUserList, admMessage
 from func.artist import addArtist, addRelease, artistInfo, artistList
 from func.shared.keyboard import get_main_keyboard
+from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
-@bot.message_handler(commands=['start', 'help', 'menu'])
+@bot.message_handler(commands=['start', 'menu'])
 def handle_start(message):
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=get_main_keyboard())
 
@@ -29,7 +30,7 @@ def handle_list_releases(message):
 def handle_openMenu_releases(message):
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=get_main_keyboard())
 
-@bot.message_handler(commands=['questions', 'q'])
+@bot.message_handler(commands=['question', 'questions', 'q'])
 def handle_questions(message):
     admQuestions.setup_admQuestions_handler(bot, message)
 
@@ -45,9 +46,13 @@ def setup_admUserList_handler(message):
 def setup_admMsg_handler(message):
     admMessage.setup_admMsg_handler(bot, message)
 
-@bot.message_handler(commands=['artistInfo', 'artist', 'info', 'information', 'inf', 'stat', 'stats'])
+@bot.message_handler(commands=['artist', 'info', 'stats'])
 def setup_artistInfo_handler(message):
     artistInfo.setup_artistInfo_handler(bot, message)
+
+@bot.message_handler(commands=['help', 'cmd', 'команды', 'кмд'])
+def handle_start(message):
+    show_help_cmd(bot, message)
 
 supportChatSender.setup_support_handler(bot)
 addRelease.setup_addRelease_handler(bot)

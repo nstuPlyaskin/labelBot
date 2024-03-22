@@ -113,9 +113,15 @@ def get_confirmation_keyboard():
 # Функция для начала процедуры создания нового артиста
 def setup_addArtist_handler(bot: TeleBot, message: Message):
     global current_question_index, user_data, questions_summary
-    current_question_index = 0
-    questions_summary.clear()
-    user_data.clear()
+    clear_user_data()
     keyboard = get_cancel_keyboard()
     bot.send_message(message.chat.id, "Начата процедура создания нового артиста, для отмены напишите 'Отмена'.", reply_markup=keyboard)
     send_next_question(bot, message)
+
+
+def clear_user_data():
+    global current_question_index, user_data, questions_summary
+    current_question_index = 0
+    user_data.clear()
+    questions_summary.clear()
+
