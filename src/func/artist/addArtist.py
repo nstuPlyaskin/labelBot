@@ -14,6 +14,14 @@ questions = [
     "Введите ссылку на профиль артиста в Spotify (если нужно создать новый, напишите 'нужен новый'):",
     "Введите ссылку на официальное сообщество артиста (vk или tg):"
 ]
+
+confrimQuestions = [
+    "Никнейм артиста:", 
+    "Настоящее ФИО артиста:",
+    "Ссылка на профиль артиста в Spotify:",
+    "Ссылка на официальное сообщество артиста (vk или tg):"
+]
+
 keys = ["artistNickName", "artistRealName", "artistSpotify", "artistContacts"]
 
 # Переменная для хранения текстового описания информации, введенной пользователем
@@ -66,9 +74,14 @@ def save_user_answer(message: Message, bot: TeleBot):
 
 # Функция для отправки сообщения с подтверждением введенной информации
 def send_confirmation_message(bot: TeleBot, message: Message):
-    global user_data, questions_summary
-    confirmation_text = "\n".join(questions_summary)
-    bot.send_message(message.chat.id, f"Пожалуйста, подтвердите введенную информацию:\n\n{confirmation_text}", 
+    global user_data, questions_summary, confrimQuestions
+
+    confirmation_text = ""
+    for question, summary in zip(confrimQuestions, questions_summary):
+        confirmation_text += f"{question} {summary.split(': ')[1]}\n"  # Используем только ответы пользователя
+
+    final_question = "Вы уверены, что хотите добавить этого артиста?"
+    bot.send_message(message.chat.id, f"Пожалуйста, подтвердите введенную информацию:\n\n{confirmation_text}\n{final_question}", 
                      reply_markup=get_confirmation_keyboard())
     bot.register_next_step_handler(message, handle_confirmation_response, bot=bot)
 
