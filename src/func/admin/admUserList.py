@@ -1,16 +1,10 @@
 from telebot import TeleBot
 from ..db.dbAction import DB
-import os, json
+import os
+from .isWhitelist import is_user_allowed
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 whitelist_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'whitelist.json')
-
-
-def is_user_allowed(user_id):
-    with open(whitelist_path, "r") as f:
-        whitelist = json.load(f)
-    allowed_users = whitelist.get("allowed_users", [])
-    return user_id in allowed_users
 
 def setup_admUserList_handler(bot: TeleBot, message):
     if is_user_allowed(message.from_user.id):
