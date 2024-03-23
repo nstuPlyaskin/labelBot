@@ -149,6 +149,12 @@ class DB:
             bot.reply_to(message, f"Не удалось отправить сообщение пользователю с UID {uid}. Пожалуйста, проверьте правильность UID и повторите попытку.")
             print(f"Failed to send message to user with UID {uid}: {e}")
 
+    def showUnmoderatedReleases(self):
+        # Выполнить запрос к базе данных для получения всех релизов с isModerated = 0
+        self.cursor.execute("SELECT * FROM releasesTable WHERE isModerated = 0")
+        unmoderated_releases = self.cursor.fetchall()
+        return unmoderated_releases
+    
 #~~~# ARTIST PART #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
     def addArtist(self, artist_data):
@@ -244,6 +250,49 @@ class DB:
         except sqlite3.Error as e:
             print("Ошибка при получении релиза по имени:", e)
             return None
+        
+    def get_unmoderated_releases(self):
+        try:
+            # Выполняем запрос к базе данных для получения всех релизов, у которых isModerated = 0
+            self.cursor.execute("SELECT * FROM releasesTable WHERE isModerated = 0")
+            releases = self.cursor.fetchall()
+
+            # Возвращаем список релизов в виде списка словарей, где ключи соответствуют именам столбцов
+            return [{'releaseID': release[0],
+                    'artistID': release[1],
+                    'artistNickName': release[2],
+                    'feat': release [3],
+                    'releaseName': release [4],
+                    'releaseDate': release[5],
+                    'releaseGenre': release[6],
+                    'releaseTiming': release[7],
+                    'releaseExplicit': release[8],
+                    'releaseLyrics': release[9],
+                    'releaseUPC': release[10],
+                    'releaseISRC': release[11],
+                    'releaseStreams': release[12],
+                    'releaseLinkFiles': [13],
+                    'isModerated': release[14] } for release in releases]
+        except Exception as e:
+            print(f"Error while fetching unmoderated releases: {e}")
+            return []  # Возвращаем пустой список в случае ошибки
+
+        
+    def get_artist_name_by_id(self, artist_id):
+        try:
+            # Выполняем запрос к базе данных, чтобы получить имя артиста по его ID
+            self.cursor.execute("SELECT artistNickName FROM artistsTable WHERE artistID = ?", (artist_id,))
+            result = self.cursor.fetchone()
+
+            if result:
+                return result[0]  # Возвращаем имя артиста из результата запроса
+            else:
+                return None  # Возвращаем None, если артист с указанным ID не найден
+        except Exception as e:
+            print(f"Error while fetching artist name by ID: {e}, 'artistid' {artist_id}")
+            return None  # Возвращаем None в случае ошибки
+
+
 
 
     def close(self):

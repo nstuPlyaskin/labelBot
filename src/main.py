@@ -1,12 +1,9 @@
 import telebot
-from func.admin import admQuestions, admAnswer, admUserList, admMessage
+from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases
 from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
-
-# @todo: add to keyboard button "canel" when user creating release
-# @todo: add to keyboard button "cancel" when user chooing artist in step1
 
 # @todo: add to admins cmd for watch list of artists and users who create it 
 
@@ -50,6 +47,10 @@ def setup_admUserList_handler(message):
 @bot.message_handler(commands=['message', 'm'])
 def setup_admMsg_handler(message):
     admMessage.setup_admMsg_handler(bot, message)
+
+@bot.message_handler(commands=['releases', 'r'])
+def show_unmoderated_releases(message):
+    admReleases.show_unmoderated_releases(bot, message)
 
 @bot.message_handler(commands=['artist', 'info', 'stats'])
 def setup_artistInfo_handler(message):
