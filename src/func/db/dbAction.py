@@ -228,5 +228,12 @@ class DB:
             self.conn.close()
 
 
+    def get_user_artists(self, user_id):
+        query = "SELECT artistNickName FROM artistsTable WHERE uid = ?"
+        self.cursor.execute(query, (user_id,))
+        rows = self.cursor.fetchall()
+        return [row[0] for row in rows]
+
+
     def close(self):
         self.conn.close()

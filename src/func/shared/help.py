@@ -2,7 +2,7 @@ import json
 import os
 
 whitelist_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'whitelist.json')
-help_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'help.json')
+text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'texts.json')
 
 def is_user_allowed(user_id):
     with open(whitelist_path, "r", encoding='utf-8') as f:
@@ -11,7 +11,7 @@ def is_user_allowed(user_id):
     return user_id in allowed_users
 
 def get_help_text(user_id):
-    with open(help_path, "r", encoding='utf-8') as f:
+    with open(text_path, "r", encoding='utf-8') as f:
         help_data = json.load(f)
     if is_user_allowed(user_id):
         return '\n'.join(help_data.get("helpWhitelist", []))

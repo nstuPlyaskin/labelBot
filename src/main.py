@@ -5,6 +5,11 @@ from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
+# @todo: add to keyboard button "canel" when user creating release
+# @todo: add to keyboard button "cancel" when user chooing artist in step1
+
+# @todo: add to admins cmd for watch list of artists and users who create it 
+
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
 @bot.message_handler(commands=['start', 'menu'])

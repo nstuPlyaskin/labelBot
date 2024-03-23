@@ -2,25 +2,19 @@ from telebot import TeleBot, types
 from telebot.types import Message
 from ..db.dbAction import DB
 from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard
+import json
 
 import os
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
+text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'texts.json')
 
-# Переменные для хранения вопросов и соответствующих им ключей
-questions = [
-    "Введите никнейм артиста:",
-    "Введите настоящее ФИО артиста:",
-    "Введите ссылку на профиль артиста в Spotify (если нужно создать новый, напишите 'нужен новый'):",
-    "Введите ссылку на официальное сообщество артиста (vk или tg):"
-]
+# Загрузка текстов из файла texts.json
+with open(text_path, 'r', encoding='utf-8') as file:
+    texts = json.load(file)
 
-confrimQuestions = [
-    "Никнейм артиста:", 
-    "Настоящее ФИО артиста:",
-    "Ссылка на профиль артиста в Spotify:",
-    "Ссылка на официальное сообщество артиста (vk или tg):"
-]
+addArtistQuestions = texts["addArtistQuestions"]
+addArtistConfrimQuestions = texts["addArtistConfrimQuestions"]
 
 keys = ["artistNickName", "artistRealName", "artistSpotify", "artistContacts"]
 
@@ -37,10 +31,10 @@ def send_next_question(bot: TeleBot, message: Message):
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
     
-    if current_question_index < len(questions):
+    if current_question_index < len(addArtistQuestions):
         keyboard = get_cancel_keyboard() if current_question_index > 0 else None
         
-        bot.send_message(message.chat.id, questions[current_question_index], reply_markup=keyboard)
+        bot.send_message(message.chat.id, addArtistQuestions[current_question_index], reply_markup=keyboard)
         bot.register_next_step_handler(message, save_user_answer, bot=bot)
     else:
         send_confirmation_message(bot, message)
@@ -69,7 +63,7 @@ def save_user_answer(message: Message, bot: TeleBot):
             return
     
     user_data[current_key] = user_answer
-    questions_summary.append(f"{questions[current_question_index]} {user_answer}")
+    questions_summary.append(f"{addArtistQuestions[current_question_index]} {user_answer}")
     current_question_index += 1
     user_states[user_id]['current_question_index'] = current_question_index
     user_states[user_id]['user_data'] = user_data
@@ -83,7 +77,7 @@ def send_confirmation_message(bot: TeleBot, message: Message):
     questions_summary = user_states[user_id]['questions_summary']
 
     confirmation_text = ""
-    for question, summary in zip(confrimQuestions, questions_summary):
+    for question, summary in zip(addArtistConfrimQuestions, questions_summary):
         confirmation_text += f"{question} {summary.split(': ')[1]}\n"  # Используем только ответы пользователя
 
     final_question = "Вы уверены, что хотите добавить этого артиста?"
