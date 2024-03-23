@@ -233,6 +233,43 @@ class DB:
             # Закрываем соединение с базой данных
             self.conn.close()
 
+    def get_release_details(self, release_id):
+        try:
+            # Выполняем запрос к базе данных, чтобы получить детали релиза по его ID
+            self.cursor.execute("""
+                SELECT r.releaseID, r.artistID, r.artistNickName, r.feat, r.releaseName, r.releaseDate, 
+                    r.releaseGenre, r.releaseTiming, r.releaseExplicit, r.releaseLyrics, r.releaseUPC, 
+                    r.releaseISRC, r.releaseStreams, r.releaseLinkFiles, r.isModerated, a.uid, a.artistRealName, a.artistSpotify
+                FROM releasesTable r
+                LEFT JOIN artistsTable a ON r.artistID = a.artistID
+                WHERE r.releaseID = ?
+            """, (release_id,))
+            
+            result = self.cursor.fetchone()
+
+            if result:
+                release_details = {
+                    "Название релиза": result[4],
+                    "Имя артиста": result[2],
+                    "UID артиста": result[15],
+                    "Артисты на фите": result[3],
+                    "Жанр": result[6],
+                    "Тайминг для коротких видео": result[7],
+                    "Есть ли ненормативная лексика": result[8],
+                    "Текст трека / треков": result[9],
+                    "Ссылка на файлы (обложка, аудио)": result[13],
+                    "Дата публикации": result[5],
+                    "Ссылка на профиль Spotify": result[17]
+                }
+                return release_details
+            else:
+                print("Релиз с указанным ID не найден.")
+                return None
+        except Exception as e:
+            print(f"Ошибка при получении деталей релиза по ID: {e}")
+            return None
+
+
 
     def get_user_artists(self, user_id):
         query = "SELECT artistNickName FROM artistsTable WHERE uid = ?"
@@ -250,6 +287,7 @@ class DB:
         except sqlite3.Error as e:
             print("Ошибка при получении релиза по имени:", e)
             return None
+        
         
     def get_unmoderated_releases(self):
         try:

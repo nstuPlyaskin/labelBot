@@ -1,11 +1,11 @@
 import telebot
-from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases
+from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate
 from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
-# @todo: add to admins cmd for watch list of artists and users who create it 
+# @todo autobackup db
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
@@ -51,6 +51,10 @@ def setup_admMsg_handler(message):
 @bot.message_handler(commands=['releases', 'r'])
 def show_unmoderated_releases(message):
     admReleases.show_unmoderated_releases(bot, message)
+
+@bot.message_handler(commands=['moderate', 'mod'])
+def moderate_releases(message):
+    admModerate.moderate_releases(bot, message)
 
 @bot.message_handler(commands=['artist', 'info', 'stats'])
 def setup_artistInfo_handler(message):
