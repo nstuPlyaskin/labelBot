@@ -1,7 +1,7 @@
 from telebot import TeleBot, types
 from telebot.types import Message
 from ..db.dbAction import DB
-from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard, get_confirmation_keyboard
+from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard, get_confirmation_keyboard, get_confirmation_and_cancel_keyboard
 import json
 
 import os
@@ -41,15 +41,19 @@ def send_next_question(bot: TeleBot, message: Message):
             db.close()
             
             # Create a keyboard with artist nicknames
-            keyboard_markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            keyboard_markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
             for nickname in artist_nicknames:
                 keyboard_markup.add(nickname)
             
+            # Add "Отмена" button to the keyboard
+            keyboard_markup.row(types.KeyboardButton("Отмена"))
+            
+            # Assign the created keyboard to the 'keyboard' variable
             keyboard = keyboard_markup
-        elif current_question_index == 1:
-            # Create a keyboard with "Yes" and "No" options
-            keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-            keyboard.add(types.KeyboardButton("Да"), types.KeyboardButton("Нет"))
+        else:
+            # Determine the keyboard based on the current question index
+            keyboard = get_confirmation_and_cancel_keyboard() if current_question_index == 6 else get_cancel_keyboard()
+
         
         bot.send_message(message.chat.id, addReleaseQuestions[current_question_index], reply_markup=keyboard)
         bot.register_next_step_handler(message, save_user_answer, bot=bot)
@@ -82,7 +86,7 @@ def save_user_answer(message: Message, bot: TeleBot):
     
     elif current_key == "feat":
         if message.text.strip().lower() == "да":
-            bot.send_message(message.chat.id, "Введите никнейм артистов на фите через запятую. Пример: Lil peep, Lil rip")
+            bot.send_message(message.chat.id, "Введите никнейм артистов на фите через запятую.\nПример: artist name one, artist name two")
             bot.register_next_step_handler(message, save_feat_answer, bot=bot)
             return
     
@@ -118,12 +122,24 @@ def send_confirmation_message(bot, message):
         bot.register_next_step_handler(message, handle_confirmation_response, bot)
     else:
         bot.reply_to(message, "Произошла ошибка, сообщите в поддержку")
+
 def handle_confirmation_response(message: Message, bot: TeleBot):
     uid = message.from_user.id
     user_data = user_states[uid]['user_data']
     
+    # Проверяем, что пользователь ввел "Да" или "Нет"
     if message.text.lower() == "да":
         db = DB(db_path)
+        
+        # Проверяем, существует ли релиз с таким именем у артиста
+        existing_release = db.get_release_by_name(user_data["artistNickName"], user_data["releaseName"])
+        if existing_release:
+            bot.send_message(message.chat.id, "Релиз с таким именем уже существует. Пожалуйста, введите другое имя.")
+            # Запускаем процесс создания релиза заново
+            setup_addRelease_handler(bot, message)
+            return
+        
+        # Ваша логика сохранения релиза в базе данных
         success = db.saveRelease(user_data)
         db.close()
 
@@ -132,12 +148,16 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
         else:
             bot.send_message(message.chat.id, "Произошла ошибка при добавлении релиза.", reply_markup=get_main_keyboard())
         
-        del user_states[uid]
+        del user_states[uid]  # Удаляем состояние пользователя из словаря после завершения процесса
     elif message.text.lower() == "нет":
-        del user_states[uid]
-        setup_addRelease_handler(bot, message)
+        del user_states[uid]  # Пользователь отказался от добавления релиза, удаляем состояние пользователя
+        setup_addRelease_handler(bot, message)  # Начинаем процесс сначала
     else:
+        # Ожидаем следующего сообщения снова от пользователя
+        bot.register_next_step_handler(message, handle_confirmation_response, bot)
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+
+
 
 def setup_addRelease_handler(bot: TeleBot, message: Message):
     user_id = message.from_user.id

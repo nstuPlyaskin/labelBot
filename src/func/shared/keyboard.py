@@ -34,6 +34,15 @@ def get_cancel_keyboard():
     keyboard.add(button_cancel)
     return keyboard
 
+def get_confirmation_and_cancel_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    button_yes = types.KeyboardButton("Да")
+    button_no = types.KeyboardButton("Нет")
+    button_cancel = types.KeyboardButton("Отмена")
+    keyboard.add(button_yes, button_no)
+    keyboard.row(button_cancel)
+    return keyboard
+
 def get_confirmation_keyboard():
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     button_yes = types.KeyboardButton("Да")

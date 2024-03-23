@@ -88,23 +88,29 @@ def send_confirmation_message(bot: TeleBot, message: Message):
 # Функция для обработки ответа пользователя на подтверждение информации
 def handle_confirmation_response(message: Message, bot: TeleBot):
     user_id = message.from_user.id
+    user_data = user_states[user_id]['user_data']
+    
+    # Проверяем, что пользователь ввел "Да" или "Нет"
     if message.text.lower() == "да":
-        user_data = user_states[user_id]['user_data']
         db = DB(db_path)
-        success = db.addArtist(user_data)
+        success = db.addArtist(user_data)  # Предполагается, что у вас есть метод saveArtist для сохранения данных артиста
         db.close()
 
         if success:
-            bot.send_message(message.chat.id, "Артист успешно добавлен.", reply_markup=get_existing_artist_keyboard())
+            bot.send_message(message.chat.id, "Артист успешно добавлен.", reply_markup=get_main_keyboard())
         else:
-            bot.send_message(message.chat.id, "Произошла ошибка при добавлении артиста.")
-        del user_states[user_id]
+            bot.send_message(message.chat.id, "Произошла ошибка при добавлении артиста.", reply_markup=get_main_keyboard())
+
+        del user_states[user_id]  # Удаляем состояние пользователя из словаря после завершения процесса
     elif message.text.lower() == "нет":
-        # Пользователь хочет изменить информацию, начинаем процесс сначала
+        # Пользователь отказался от добавления артиста, удаляем состояние пользователя
         del user_states[user_id]
-        setup_addArtist_handler(bot, message)
+        setup_addArtist_handler(bot, message)  # Начинаем процесс сначала
     else:
+        # Если пользователь ввел что-то другое, просим его ввести "Да" или "Нет" повторно
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+        # Ожидаем следующего сообщения снова от пользователя
+        bot.register_next_step_handler(message, handle_confirmation_response, bot)
 
 # Функция для создания клавиатуры с кнопками "Да" и "Нет" для подтверждения информации
 def get_confirmation_keyboard():

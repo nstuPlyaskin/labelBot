@@ -233,6 +233,17 @@ class DB:
         self.cursor.execute(query, (user_id,))
         rows = self.cursor.fetchall()
         return [row[0] for row in rows]
+    
+    def get_release_by_name(self, artistNickName, release_name):
+        try:
+            # Выполняем запрос к базе данных, чтобы получить релиз с указанным именем
+            query = "SELECT * FROM releasesTable WHERE artistNickName = ? AND releaseName = ?"
+            self.cursor.execute(query, (artistNickName, release_name))
+            release = self.cursor.fetchone()
+            return release
+        except sqlite3.Error as e:
+            print("Ошибка при получении релиза по имени:", e)
+            return None
 
 
     def close(self):
