@@ -250,6 +250,7 @@ class DB:
             if result:
                 release_details = {
                     "Название релиза": result[4],
+                    "ID Релиза": result [0],
                     "Имя артиста": result[2],
                     "UID артиста": result[15],
                     "Артисты на фите": result[3],
@@ -329,8 +330,99 @@ class DB:
         except Exception as e:
             print(f"Error while fetching artist name by ID: {e}, 'artistid' {artist_id}")
             return None  # Возвращаем None в случае ошибки
+        
+
+    def get_user_id(self, uid):
+        try:
+            self.cursor.execute("SELECT user_id FROM releasesTable WHERE uid = ?", (uid,))
+            row = self.cursor.fetchone()
+            if row:
+                return row[0]
+            else:
+                print(f"Пользователь с uid {uid} не найден")
+                return None
+        except Exception as e:
+            print(f"Ошибка при получении user_id по uid: {e}")
+            return None
 
 
+
+    # /mod id accepted одобрение релиза
+    # В метод approve_release из класса DB добавляем отправку уведомления администратору
+    def approve_release(self, release_id, bot):
+        try:
+            # Обновляем значение поля isModerated на 1 для указанного релиза
+            self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
+            self.conn.commit()
+            print(f"Релиз с ID {release_id} одобрен")
+
+            # Получаем artistID пользователя, который загрузил релиз
+            self.cursor.execute("SELECT artistID FROM releasesTable WHERE releaseID = ?", (release_id,))
+            artist_id = self.cursor.fetchone()[0]
+
+            # Получаем uid пользователя из таблицы artistsTable по artistID
+            self.cursor.execute("SELECT uid FROM artistsTable WHERE artistID = ?", (artist_id,))
+            uid = self.cursor.fetchone()[0]
+
+            # Получаем название релиза из таблицы releasesTable по releaseID
+            self.cursor.execute("SELECT releaseName FROM releasesTable WHERE releaseID = ?", (release_id,))
+            release_name = self.cursor.fetchone()[0]
+
+            # Отправляем уведомление пользователю
+            if uid:
+                notification = f"Ваш релиз \"{release_name}\" одобрен"
+                bot.send_message(uid, notification)
+            else:
+                print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
+
+            # Отправляем уведомление администратору о успешной отправке уведомления пользователю
+            bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
+        except Exception as e:
+            print(f"Error while approving release: {e}")
+
+
+    # /mod id reject отклонение релиза
+    # В метод reject_release из класса DB добавляем отправку уведомления пользователю
+    def reject_release(self, release_id, bot):
+        try:
+            self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
+            self.conn.commit()
+        
+            # Получаем artistID пользователя, который загрузил релиз
+            self.cursor.execute("SELECT artistID FROM releasesTable WHERE releaseID = ?", (release_id,))
+            artist_id = self.cursor.fetchone()[0]
+
+            # Получаем uid пользователя из таблицы artistsTable по artistID
+            self.cursor.execute("SELECT uid FROM artistsTable WHERE artistID = ?", (artist_id,))
+            uid = self.cursor.fetchone()[0]
+
+            # Получаем название релиза из таблицы releasesTable по releaseID
+            self.cursor.execute("SELECT releaseName FROM releasesTable WHERE releaseID = ?", (release_id,))
+            release_name = self.cursor.fetchone()[0]
+
+            # Отправляем уведомление пользователю о том, что его релиз отклонён
+            if uid:
+                notification = f"Ваш релиз \"{release_name}\" отклонён"
+                bot.send_message(uid, notification)
+            else:
+                print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
+        except Exception as e:
+            print(f"Error while rejecting release: {e}")
+
+
+    # проверить статус релиза, на модерации он или нет
+    def check_moderation_status(self, release_id):
+        try:
+            self.cursor.execute("SELECT isModerated FROM releasesTable WHERE releaseID = ?", (release_id,))
+            row = self.cursor.fetchone()
+            if row:
+                return row[0]
+            else:
+                print(f"Релиз с ID {release_id} не найден")
+                return None
+        except Exception as e:
+            print(f"Ошибка при проверке статуса модерации релиза: {e}")
+            return None
 
 
     def close(self):

@@ -49,3 +49,13 @@ def get_confirmation_keyboard():
     button_no = types.KeyboardButton("Нет")
     keyboard.add(button_yes, button_no)
     return keyboard
+
+def moderate_release_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    button_accepted = types.KeyboardButton("Релиз одобрен к дистрибуции")
+    button_rejected = types.KeyboardButton("Отклонить релиз")
+    button_cancel = types.KeyboardButton("Отмена")
+    keyboard.add(button_accepted, button_rejected)
+    keyboard.row(button_cancel)
+    return keyboard
+    
