@@ -1,5 +1,5 @@
 import telebot
-from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate, admEdit
+from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate, admEdit, admList
 from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
@@ -69,6 +69,10 @@ def moderate_releases(message):
 @bot.message_handler(commands=['edit', 'e'])
 def moderate_releases(message):
     admEdit.setup_admEdit_handler(bot, message)
+
+@bot.message_handler(commands=['list', 'l'])
+def list_releases(message):
+    admList.setup_admList_handler(bot, message)
 
 @bot.message_handler(commands=['artist', 'info', 'stats'])
 def setup_artistInfo_handler(message):

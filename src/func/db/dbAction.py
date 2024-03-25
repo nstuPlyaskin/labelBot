@@ -405,6 +405,18 @@ class DB:
 
 
 
+    # list of all releases
+    def get_all_albums(self):
+        try:
+            with self.conn:
+                self.cursor.execute("SELECT * FROM releasesTable")
+                albums = self.cursor.fetchall()
+            return albums
+        except sqlite3.Error as e:
+            print("Error while fetching all albums:", e)
+            return None
+
+
     # /mod id accepted одобрение релиза
     # В метод approve_release из класса DB добавляем отправку уведомления администратору
     def approve_release(self, release_id, bot):
