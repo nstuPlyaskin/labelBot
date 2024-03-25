@@ -352,8 +352,8 @@ class DB:
 
             if releases_info:
                 for release in releases_info:
-                    # Определяем значение для поля "На модерации"
-                    moderation_status = "На модерации" if release[14] else "Отправлен на дистрибуцию"
+                    # Определяем значение для поля "Статус модерации"
+                    moderation_status = "На модерации" if release[14] == 0 else "Отправлен на дистрибуцию" if release[14] == 1 else "Отклонён"
 
                     # Проверяем наличие причины отклонения
                     reject_reason = release[15] if release[15] else None
@@ -425,8 +425,7 @@ class DB:
         except Exception as e:
             print(f"Error while approving release: {e}")
 
-
-    # /mod id reject отклонение релиза
+    # /mod id reject reason
     def reject_release(self, release_id, bot, reason=None):
         try:
             # Получаем artistID пользователя, который загрузил релиз
@@ -447,21 +446,22 @@ class DB:
                 if reason:
                     notification += f"\nПричина: {reason}"
                     
-                    # Обновляем поле rejectReason в базе данных
-                    self.cursor.execute("UPDATE releasesTable SET rejectReason = ? WHERE releaseID = ?", (reason, release_id))
+                    # Обновляем поле rejectReason и isModerated в базе данных
+                    self.cursor.execute("UPDATE releasesTable SET rejectReason = ?, isModerated = -1 WHERE releaseID = ?", (reason, release_id))
 
                 print(f"Релиз: '{release_name}' с ID: '{release_id}' отклонён по причине: '{reason}'")
                 bot.send_message(uid, notification)
-
-                # Обновляем флаг isModerated в базе данных на 1 после указания причины отклонения
-                self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
+                
+                # Обновляем флаг isModerated в базе данных на -1 после отклонения релиза
                 self.conn.commit()
-
+                
             else:
                 print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
-            bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
+                bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
         except Exception as e:
             print(f"Error while rejecting release: {e}")
+
+
 
 
 
