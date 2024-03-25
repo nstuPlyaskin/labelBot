@@ -367,7 +367,7 @@ class DB:
                         "UPC": release[10] if release[10] else "На данный момент нет данных",
                         "ISRC": release[11] if release[11] else "На данный момент нет данных",
                         "Прослушивания": release[12] if release[12] else "На данный момент нет данных",
-                        "На модерации": moderation_status,
+                        "Статус модерации": moderation_status,
                     }
 
                     # Добавляем причину отклонения, если она есть
@@ -446,6 +446,10 @@ class DB:
                 notification = f"Ваш релиз \"{release_name}\" отклонён"
                 if reason:
                     notification += f"\nПричина: {reason}"
+                    
+                    # Обновляем поле rejectReason в базе данных
+                    self.cursor.execute("UPDATE releasesTable SET rejectReason = ? WHERE releaseID = ?", (reason, release_id))
+
                 print(f"Релиз: '{release_name}' с ID: '{release_id}' отклонён по причине: '{reason}'")
                 bot.send_message(uid, notification)
 
@@ -458,6 +462,7 @@ class DB:
             bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
         except Exception as e:
             print(f"Error while rejecting release: {e}")
+
 
 
     # проверить статус релиза, на модерации он или нет

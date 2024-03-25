@@ -18,22 +18,28 @@ def showRelease(bot, message, db):
         artist_list = db.artistList(uid)
 
         if artist_list:
+            has_releases = False  # Флаг для проверки наличия релизов у всех артистов
             reply_message = ""
             for artist_name in artist_list:
                 releases_info = db.showReleaseByArtist(bot, uid, artist_name)
                 if releases_info:
+                    has_releases = True  # Устанавливаем флаг, если есть хотя бы один релиз
                     reply_message += f"Релизы артиста {artist_name}:\n"
                     for release in releases_info:
                         release_str = f"Название: {release[0]}\nДата выпуска: {release[1]}\n"
                         reply_message += release_str
                 else:
                     reply_message += f"У артиста {artist_name} пока нет релизов в базе данных.\n"
+            
+            # Отправляем сообщение, если хотя бы для одного артиста есть релизы
+            if has_releases:
+                keyboard = get_existing_releases_keyboard()
+                bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
         else:
             reply_message = "У вас пока нет артистов в базе данных."
-
+            bot.send_message(message.chat.id, reply_message)
     except Exception as e:
         print("Ошибка при получении информации о релизах:", e)
         reply_message = "Произошла ошибка при получении информации о релизах."
+        bot.send_message(message.chat.id, reply_message)
 
-    keyboard = get_existing_releases_keyboard()  # Получаем клавиатуру с основными кнопками
-    bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)

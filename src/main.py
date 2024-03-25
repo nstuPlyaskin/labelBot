@@ -7,8 +7,6 @@ from func.support import supportChatSender
 
 # @todo сделать возможность админам изменять поля в бд релизов, быть может при выводе в /mod сделать их нумерацию и сделать команду по типу /cmd номер релиза, номер поля, значение
 # @todo autobackup db
-# @todo reject reason write to db
-# @todo reject resaon notify amd а то без всего реджект происходит
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
