@@ -5,9 +5,7 @@ from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
-# @todo сделать возможность админам изменять поля в бд релизов, быть может при выводе в /mod сделать их нумерацию и сделать команду по типу /cmd номер релиза, номер поля, значение
 # @todo autobackup db
-# @todo список активных в базе релизов для админов и полей для их измненеий
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 

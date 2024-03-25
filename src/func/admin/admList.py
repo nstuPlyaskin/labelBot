@@ -31,7 +31,7 @@ def handle_list_command(bot: TeleBot, message, db: DB):
                     moderation_text = "Статус не найден"
 
                 # Формирование строки с сокращенной информацией об альбоме
-                album_info = f"ID: {album[0]}, Название: {album[1]}, Исполнитель: {album[2]}, Статус модерации: {moderation_text}\n"
+                album_info = f"ID: {album[0]}, Название: {album[1]}, Исполнитель: {album[2]}, Статус модерации: {moderation_text}\n\n"
                 reply_message += album_info
             bot.reply_to(message, reply_message)
         else:

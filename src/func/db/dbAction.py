@@ -419,12 +419,17 @@ class DB:
 
     # /mod id accepted одобрение релиза
     # В метод approve_release из класса DB добавляем отправку уведомления администратору
-    def approve_release(self, release_id, bot):
+    def approve_release(self, release_id, bot, is_approved=True):
         try:
-            # Обновляем значение поля isModerated на 1 для указанного релиза
-            self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
+            # Обновляем значение поля isModerated на 1 или 0 в зависимости от статуса одобрения релиза
+            moderation_status = 1 if is_approved else 0
+            self.cursor.execute("UPDATE releasesTable SET isModerated = ? WHERE releaseID = ?", (moderation_status, release_id))
             self.conn.commit()
-            print(f"Релиз с ID {release_id} одобрен")
+            
+            if is_approved:
+                print(f"Релиз с ID {release_id} одобрен")
+            else:
+                bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
 
             # Получаем artistID пользователя, который загрузил релиз
             self.cursor.execute("SELECT artistID FROM releasesTable WHERE releaseID = ?", (release_id,))
@@ -439,8 +444,13 @@ class DB:
             release_name = self.cursor.fetchone()[0]
 
             # Отправляем уведомление пользователю
-            if uid:
+            notification = ""
+            if is_approved:
                 notification = f"Ваш релиз \"{release_name}\" одобрен"
+            else:
+                notification = f"Ваш релиз \"{release_name}\" отклонен"
+
+            if uid:
                 bot.send_message(uid, notification)
             else:
                 print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
@@ -449,6 +459,7 @@ class DB:
             bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
         except Exception as e:
             print(f"Error while approving release: {e}")
+
 
     # /mod id reject reason
     def reject_release(self, release_id, bot, reason=None):
@@ -475,6 +486,7 @@ class DB:
                     self.cursor.execute("UPDATE releasesTable SET rejectReason = ?, isModerated = -1 WHERE releaseID = ?", (reason, release_id))
 
                 print(f"Релиз: '{release_name}' с ID: '{release_id}' отклонён по причине: '{reason}'")
+                bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
                 bot.send_message(uid, notification)
                 
                 # Обновляем флаг isModerated в базе данных на -1 после отклонения релиза
