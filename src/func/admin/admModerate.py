@@ -4,8 +4,9 @@ from .isWhitelist import is_user_allowed
 from ..db.dbAction import DB
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
+whitelist_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'whitelist.json')
 
-# В функции moderate_releases из файла admModerate.py добавим проверку на isModerated
+
 def moderate_releases(bot: TeleBot, message):
     if is_user_allowed(message.from_user.id):
         args = message.text.split()
@@ -27,7 +28,12 @@ def moderate_releases(bot: TeleBot, message):
                     if args[2] == 'accept':
                         db.approve_release(release_id, bot)
                     elif args[2] == 'reject':
-                        db.reject_release(release_id, bot)
+                        # Если передана причина отклонения, передаем её вместе с вызовом функции reject_release
+                        if len(args) > 3:
+                            reason = ' '.join(args[3:])
+                            db.reject_release(release_id, bot, reason)
+                        else:
+                            db.reject_release(release_id, bot)
                 else:
                     release_message = "Детали релиза:\n\n"
                     for key, value in release_details.items():
@@ -36,7 +42,7 @@ def moderate_releases(bot: TeleBot, message):
             else:
                 bot.send_message(message.chat.id, "Релиз с указанным ID не найден.")
             
-            db.close()  # Закрываем соединение с базой данных после использования
+            db.close()  
         else:
             bot.reply_to(message, "Пожалуйста, укажите ID релиза после команды.")
     else:

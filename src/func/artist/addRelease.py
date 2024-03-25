@@ -7,6 +7,7 @@ import json
 import os
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
+whitelist_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'whitelist.json')
 text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'texts.json')
 
 # Загрузка текстов из файла texts.json
@@ -20,6 +21,23 @@ addReleaseConfirmationQuestions = texts["addReleaseConfirmationQuestions"]
 keys = ["artistNickName", "feat", "releaseName", "releaseDate", "releaseGenre", "releaseTiming", "releaseExplicit", "releaseLyrics", "releaseLinkFiles"]
 
 user_states = {}
+
+def send_notification(bot: TeleBot, message: str):
+    # Загрузка списка пользователей из whitelist
+    allowed_users = load_whitelist()
+    
+    # Отправка уведомления каждому пользователю из whitelist
+    for user_id in allowed_users:
+        try:
+            bot.send_message(user_id, message)
+        except Exception as e:
+            print(f"Ошибка отправки уведомления пользователю {user_id}: {str(e)}")
+
+def load_whitelist():
+    with open(whitelist_path, 'r', encoding='utf-8') as file:
+        whitelist_data = json.load(file)
+        allowed_users = whitelist_data.get("allowed_users", [])
+        return allowed_users
 
 def send_next_question(bot: TeleBot, message: Message):
     user_id = message.from_user.id
@@ -145,6 +163,7 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
 
         if success:
             bot.send_message(message.chat.id, "Релиз успешно добавлен.", reply_markup=get_main_keyboard())
+            send_notification(bot, "В базе данных появился новый релиз на модерации")
         else:
             bot.send_message(message.chat.id, "Произошла ошибка при добавлении релиза.", reply_markup=get_main_keyboard())
         

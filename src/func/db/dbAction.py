@@ -271,7 +271,6 @@ class DB:
             return None
 
 
-
     def get_user_artists(self, user_id):
         query = "SELECT artistNickName FROM artistsTable WHERE uid = ?"
         self.cursor.execute(query, (user_id,))
@@ -382,12 +381,8 @@ class DB:
 
 
     # /mod id reject отклонение релиза
-    # В метод reject_release из класса DB добавляем отправку уведомления пользователю
-    def reject_release(self, release_id, bot):
+    def reject_release(self, release_id, bot, reason=None):
         try:
-            self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
-            self.conn.commit()
-        
             # Получаем artistID пользователя, который загрузил релиз
             self.cursor.execute("SELECT artistID FROM releasesTable WHERE releaseID = ?", (release_id,))
             artist_id = self.cursor.fetchone()[0]
@@ -403,7 +398,15 @@ class DB:
             # Отправляем уведомление пользователю о том, что его релиз отклонён
             if uid:
                 notification = f"Ваш релиз \"{release_name}\" отклонён"
+                if reason:
+                    notification += f"\nПричина: {reason}"
+                print(f"Релиз: '{release_name}' с ID: '{release_id}' отклонён по причине: '{reason}'")
                 bot.send_message(uid, notification)
+
+                # Обновляем флаг isModerated в базе данных на 1 после указания причины отклонения
+                self.cursor.execute("UPDATE releasesTable SET isModerated = 1 WHERE releaseID = ?", (release_id,))
+                self.conn.commit()
+
             else:
                 print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
         except Exception as e:
