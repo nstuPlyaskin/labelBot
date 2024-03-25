@@ -8,6 +8,7 @@ from func.support import supportChatSender
 # @todo сделать возможность админам изменять поля в бд релизов, быть может при выводе в /mod сделать их нумерацию и сделать команду по типу /cmd номер релиза, номер поля, значение
 # @todo autobackup db
 # @todo reject reason write to db
+# @todo reject resaon notify amd а то без всего реджект происходит
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
@@ -30,9 +31,6 @@ def handle_list_artists(message):
 def handle_add_release(message):
     addRelease.setup_addRelease_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
 
-
-
-
 @bot.message_handler(func=lambda message: message.text == "Информация о релизах")
 def handle_list_release(message):
     releaseInfo.setup_releaseInfo_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
@@ -40,11 +38,6 @@ def handle_list_release(message):
 @bot.message_handler(func=lambda message: message.text == "Список релизов")
 def handle_add_release(message):
     releaseList.setup_releaseList_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
-
-
-
-
-
 
 @bot.message_handler(func=lambda message: message.text == "Вернуться в меню")
 def handle_openMenu_releases(message):

@@ -352,6 +352,12 @@ class DB:
 
             if releases_info:
                 for release in releases_info:
+                    # Определяем значение для поля "На модерации"
+                    moderation_status = "На модерации" if release[14] else "Отправлен на дистрибуцию"
+
+                    # Проверяем наличие причины отклонения
+                    reject_reason = release[15] if release[15] else None
+
                     release_details = {
                         "Название релиза": release[4],
                         "Исполнитель": artist_name,
@@ -361,21 +367,26 @@ class DB:
                         "UPC": release[10] if release[10] else "На данный момент нет данных",
                         "ISRC": release[11] if release[11] else "На данный момент нет данных",
                         "Прослушивания": release[12] if release[12] else "На данный момент нет данных",
-                        "На модерации": release[14],
-                        "Причина отклонения": release[15] if release[15] else "На данный момент нет данных"
+                        "На модерации": moderation_status,
                     }
-                    
+
+                    # Добавляем причину отклонения, если она есть
+                    if reject_reason:
+                        release_details["Причина отклонения"] = reject_reason
+
                     # Формируем сообщение для отправки в чат
                     message = ""
                     for key, value in release_details.items():
                         message += f"{key} - {value}\n"
                     message += "\n"
-                    
+
                     bot.send_message(uid, message)
             else:
                 bot.send_message(uid, f"У артиста {artist_name} пока нет релизов в базе данных.")
         except sqlite3.Error as e:
             print("Ошибка при получении информации о релизах артиста:", e)
+
+
 
 
 
@@ -444,6 +455,7 @@ class DB:
 
             else:
                 print(f"Пользователь с artistID {artist_id} не найден для отправки уведомления")
+            bot.send_message(uid, "Уведомление пользователю о статусе модерации релиза успешно отправлено")
         except Exception as e:
             print(f"Error while rejecting release: {e}")
 
