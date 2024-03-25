@@ -1,5 +1,5 @@
 import telebot
-from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate
+from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate, admEdit
 from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
@@ -7,6 +7,7 @@ from func.support import supportChatSender
 
 # @todo сделать возможность админам изменять поля в бд релизов, быть может при выводе в /mod сделать их нумерацию и сделать команду по типу /cmd номер релиза, номер поля, значение
 # @todo autobackup db
+# @todo список активных в базе релизов для админов и полей для их измненеий
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
@@ -64,6 +65,10 @@ def show_unmoderated_releases(message):
 @bot.message_handler(commands=['moderate', 'mod'])
 def moderate_releases(message):
     admModerate.moderate_releases(bot, message)
+
+@bot.message_handler(commands=['edit', 'e'])
+def moderate_releases(message):
+    admEdit.setup_admEdit_handler(bot, message)
 
 @bot.message_handler(commands=['artist', 'info', 'stats'])
 def setup_artistInfo_handler(message):

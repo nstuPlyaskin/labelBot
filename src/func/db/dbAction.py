@@ -387,8 +387,21 @@ class DB:
             print("Ошибка при получении информации о релизах артиста:", e)
 
 
+    # /edit id field value
+    def update_release_field(self, release_id, field_name, new_value):
+        try:
+            with self.conn:
+                # Проверяем, существует ли указанное поле в таблице releasesTable
+                self.cursor.execute(f"PRAGMA table_info(releasesTable)")
+                fields = [row[1] for row in self.cursor.fetchall()]
+                if field_name not in fields:
+                    raise ValueError(f"Поле '{field_name}' не существует в таблице releasesTable.")
 
-
+                # Обновляем значение указанного поля для указанного релиза
+                self.cursor.execute(f"UPDATE releasesTable SET {field_name} = ? WHERE releaseID = ?", (new_value, release_id))
+                self.conn.commit()
+        except Exception as e:
+            raise e
 
 
 
