@@ -1,14 +1,13 @@
 import telebot
 from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate
-from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease
+from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
-# @todo сделать список релизов для юзеров
-# @todo сделать оповещение для юзеров если их релиз пошел на дистрибуцию
 # @todo сделать возможность админам изменять поля в бд релизов, быть может при выводе в /mod сделать их нумерацию и сделать команду по типу /cmd номер релиза, номер поля, значение
 # @todo autobackup db
+# @todo reject reason write to db
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
@@ -27,9 +26,25 @@ def handle_list_artists(message):
     else:
         artistInfo.setup_artistInfo_handler(bot, message)
 
-@bot.message_handler(func=lambda message: message.text == "Загрузить новый релиз")
+@bot.message_handler(func=lambda message: message.text == "Добавить релиз")
 def handle_add_release(message):
     addRelease.setup_addRelease_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
+
+
+
+
+@bot.message_handler(func=lambda message: message.text == "Информация о релизах")
+def handle_list_release(message):
+    releaseInfo.setup_releaseInfo_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
+
+@bot.message_handler(func=lambda message: message.text == "Список релизов")
+def handle_add_release(message):
+    releaseList.setup_releaseList_handler(bot, message)  # Вызываем функцию для начала процедуры добавления нового релиза из addRelease.py
+
+
+
+
+
 
 @bot.message_handler(func=lambda message: message.text == "Вернуться в меню")
 def handle_openMenu_releases(message):

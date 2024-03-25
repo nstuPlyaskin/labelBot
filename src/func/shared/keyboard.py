@@ -11,7 +11,7 @@ def get_add_artist_keyboard():
 def get_main_keyboard():
     keyboard = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     btnArtistInfo = types.KeyboardButton('Информация об артисте')
-    btnAddRelease = types.KeyboardButton('Загрузить новый релиз')
+    btnAddRelease = types.KeyboardButton('Информация о релизах')
     btnSupport = types.KeyboardButton('Поддержка')
     keyboard.add(btnArtistInfo, btnAddRelease)
     keyboard.row(btnSupport)
@@ -25,6 +25,17 @@ def get_existing_artist_keyboard():
 
     button_main_keyboard = types.KeyboardButton(text="Вернуться в меню")
     keyboard.add(button_list_artists, button_add_artist, button_main_keyboard)
+    return keyboard
+
+
+# Функция для получения клавиатуры с кнопками "Список артистов" и "Список релизов"
+def get_existing_releases_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    button_list_releases = types.KeyboardButton(text="Список релизов")
+    button_add_release = types.KeyboardButton("Добавить релиз")
+
+    button_main_keyboard = types.KeyboardButton(text="Вернуться в меню")
+    keyboard.add(button_list_releases, button_add_release, button_main_keyboard)
     return keyboard
 
 # Функция для получения клавиатуры с кнопкой "Отмена"

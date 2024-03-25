@@ -196,9 +196,6 @@ class DB:
         except sqlite3.Error as e:
             print("Ошибка при получении списка артистов:", e)
             return []
-        finally:
-            # Закрываем соединение с базой данных
-            self.conn.close()
 
     # Добавляем метод для получения ID артиста по его никнейму
     def get_artist_id(self, artist_nickname):
@@ -343,6 +340,44 @@ class DB:
         except Exception as e:
             print(f"Ошибка при получении user_id по uid: {e}")
             return None
+        
+        
+    def showReleaseByArtist(self, bot, uid, artist_name):
+        try:
+            with self.conn:
+                self.cursor.execute("SELECT artistID FROM artistsTable WHERE uid=? AND artistNickName=?", (uid, artist_name))
+                artist_id = self.cursor.fetchone()[0]
+                self.cursor.execute("SELECT * FROM releasesTable WHERE artistID=?", (artist_id,))
+                releases_info = self.cursor.fetchall()
+
+            if releases_info:
+                for release in releases_info:
+                    release_details = {
+                        "Название релиза": release[4],
+                        "Исполнитель": artist_name,
+                        "Feat.": release[3] if release[3] else "На данный момент нет данных",
+                        "Дата релиза": release[5],
+                        "Жанр": release[6],
+                        "UPC": release[10] if release[10] else "На данный момент нет данных",
+                        "ISRC": release[11] if release[11] else "На данный момент нет данных",
+                        "Прослушивания": release[12] if release[12] else "На данный момент нет данных",
+                        "На модерации": release[14],
+                        "Причина отклонения": release[15] if release[15] else "На данный момент нет данных"
+                    }
+                    
+                    # Формируем сообщение для отправки в чат
+                    message = ""
+                    for key, value in release_details.items():
+                        message += f"{key} - {value}\n"
+                    message += "\n"
+                    
+                    bot.send_message(uid, message)
+            else:
+                bot.send_message(uid, f"У артиста {artist_name} пока нет релизов в базе данных.")
+        except sqlite3.Error as e:
+            print("Ошибка при получении информации о релизах артиста:", e)
+
+
 
 
 
