@@ -5,6 +5,17 @@ from .isWhitelist import is_user_allowed  # Изменен импорт
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 
+# Словарь для сопоставления исходных названий полей с их читаемыми альтернативами
+field_names_mapping = {
+    'artistNickName': 'Имя артиста',
+    'feat': 'Фича',
+    'releaseName': 'Название релиза',
+    'releaseDate': 'Дата релиза',
+    'releaseGenre': 'Жанр релиза',
+    'releaseLyrics': 'Тексты песен',
+    'releaseLinkFiles': 'Ссылки на файлы'
+}
+
 def setup_admEdit_handler(bot: TeleBot, message):
     db = DB(db_path)
     handle_edit_command(bot, message, db)
@@ -39,11 +50,15 @@ def handle_edit_command(bot: TeleBot, message, db: DB):
             # Обновляем поле в базе данных
             db.update_release_field(release_id, field_name, new_value)
 
+            # Определяем читаемое название поля
+            readable_field_name = field_names_mapping.get(field_name, field_name)
+
             # Отправляем уведомление пользователю о изменении его релиза после успешного обновления
-            notification = f"Модерация изменила данные в вашем релизе: {field_name} изменено с {previous_value if previous_value else 'None'} на {new_value}. Если вы не отправляли запрос на изменение данных, обратитесь в поддержку."
+            notification = f"Модерация изменила данные в вашем релизе: Поле '{readable_field_name}' изменено с '{previous_value if previous_value else 'None'}' на '{new_value}'. Если вы не отправляли запрос на изменение данных, обратитесь в поддержку."
+            print(f"Изменение данных в релизе: Поле '{readable_field_name}' изменено с '{previous_value if previous_value else 'None'}' на '{new_value}'")
             bot.send_message(uid, notification)
 
-            bot.reply_to(message, f"Поле '{field_name}' для релиза с ID {release_id} успешно обновлено.")
+            bot.reply_to(message, f"Поле '{readable_field_name}' для релиза с ID {release_id} успешно обновлено.")
         else:
             # Если поле не требует уведомления, просто обновляем его без отправки уведомления пользователю
             db.update_release_field(release_id, field_name, new_value)

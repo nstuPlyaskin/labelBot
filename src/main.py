@@ -6,9 +6,9 @@ from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
 # @todo autobackup db
-# @todo уведомление только для полей artistNickName, feat, releaseName, releaseDate, releaseGenre, releaseLyrics, releaseLinkFiles
 # @todo ошибка при обновлении данных в бд: бд выдает старые данные 
 # @todo /u not from support to artist?
+# @todo пусть /u выводит сначала админов (из вайтлиста)
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 

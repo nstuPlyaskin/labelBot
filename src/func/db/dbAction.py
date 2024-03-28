@@ -325,7 +325,6 @@ class DB:
             else:
                 return None  # Возвращаем None, если артист с указанным ID не найден
         except Exception as e:
-            print(f"Error while fetching artist name by ID: {e}, 'artistid' {artist_id}")
             return None  # Возвращаем None в случае ошибки
         
 
