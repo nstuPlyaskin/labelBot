@@ -23,8 +23,21 @@ def handle_edit_command(bot: TeleBot, message, db: DB):
         field_name = args[1]
         new_value = ' '.join(args[2:])  # Объединяем оставшиеся аргументы в одну строку
 
+        # Получаем предыдущее значение поля
+        previous_value = db.get_field_value(release_id, field_name)
+        # Получаем uid пользователя, который загрузил релиз
+        uid = db.get_uid_by_release_id(release_id)
+
+        print("Old value: ", previous_value)
+        print("uid: ", uid)
+
         # Обновляем поле в базе данных
         db.update_release_field(release_id, field_name, new_value)
+
+        # Отправляем уведомление пользователю о изменении его релиза после успешного обновления
+        notification = f"Модерация изменила данные в вашем релизе: {field_name} изменено с {previous_value if previous_value else 'None'} на {new_value}. Если вы не отправляли запрос на изменение данных, обратитесь в поддержку."
+        bot.send_message(uid, notification)
+
         bot.reply_to(message, f"Поле '{field_name}' для релиза с ID {release_id} успешно обновлено.")
     except Exception as e:
         bot.reply_to(message, f"Произошла ошибка при обновлении поля: {e}")

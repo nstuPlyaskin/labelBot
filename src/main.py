@@ -6,6 +6,8 @@ from func.shared.help import show_help_cmd
 from func.support import supportChatSender
 
 # @todo autobackup db
+# @todo when field edit: send notify to artsts that his [field] in relase changed from [field] to [field] || уведомление только для полей artistNickName, feat, releaseName, releaseDate, releaseGenre, releaseLyrics, releaseLinkFiles
+# @todo /u not from support to artist?
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 

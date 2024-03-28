@@ -3,6 +3,7 @@ import os
 import json
 from telebot.apihelper import ApiTelegramException
 from telebot import types
+from func.shared.keyboard import get_main_keyboard
 
 # Получаем абсолютный путь к файлу базы данных и вайтлисту
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
@@ -380,7 +381,8 @@ class DB:
                         message += f"{key} - {value}\n"
                     message += "\n"
 
-                    bot.send_message(uid, message)
+                    keyboard = get_main_keyboard()
+                    bot.send_message(uid, message, reply_markup=keyboard)
             else:
                 bot.send_message(uid, f"У артиста {artist_name} пока нет релизов в базе данных.")
         except sqlite3.Error as e:
@@ -499,9 +501,6 @@ class DB:
             print(f"Error while rejecting release: {e}")
 
 
-
-
-
     # проверить статус релиза, на модерации он или нет
     def check_moderation_status(self, release_id):
         try:
@@ -516,6 +515,70 @@ class DB:
             print(f"Ошибка при проверке статуса модерации релиза: {e}")
             return None
 
+    def get_uid_by_release_id(self, artist_id):
+        """
+        Получает uid пользователя по идентификатору артиста.
+        """
+        try:
+            # Запрос для получения uid по artist_id из таблицы artistsTable
+            # self.cursor.execute("SELECT artistNickName FROM artistsTable WHERE artistID = ?", (artist_id,))
+            query = """
+                SELECT artistsTable.uid 
+                FROM releasesTable 
+                JOIN artistsTable ON releasesTable.artistID = artistsTable.artistID 
+                WHERE releasesTable.releaseID = ?
+            """
+            
+            # Параметры запроса - artist_id
+            parameters = (artist_id,)
+            
+            # Выполняем запрос с параметрами
+            result = self.execute_query(query, parameters)
 
+            # Предполагается, что результат запроса возвращается в виде кортежа или списка кортежей
+            if result:
+                return result[0][0]  # Первый столбец первой строки результата
+            else:
+                return None  # Если пользователь с указанным ID не найден
+        except Exception as e:
+            print(f"Ошибка при получении uid по идентификатору артиста: {e}")
+            return None
+
+
+
+        
+
+    def get_field_value(self, release_id, field_name):
+        """
+        Получает значение поля для указанного релиза.
+        """
+        try:
+            # Здесь должна быть логика выполнения запроса к вашей базе данных
+            # Пример:
+            query = f"SELECT {field_name} FROM releasesTable WHERE releaseID = {release_id}"
+            # Предполагается, что вы уже имеете метод для выполнения запросов в вашей базе данных
+            result = self.execute_query(query)
+
+            # Предполагается, что результат запроса возвращается в виде кортежа или списка кортежей
+            if result:
+                return result[0][0]  # Первый столбец первой строки результата
+            else:
+                return None  # Если релиз с указанным ID не найден
+        except Exception as e:
+            print(f"Ошибка при получении значения поля: {e}")
+            return None
+        
+    def execute_query(self, query, parameters=None):
+        try:
+            if parameters:
+                self.cursor.execute(query, parameters)
+            else:
+                self.cursor.execute(query)
+            self.conn.commit()  # Фиксируем изменения
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"Error while executing query: {e}")
+            return None
+        
     def close(self):
         self.conn.close()

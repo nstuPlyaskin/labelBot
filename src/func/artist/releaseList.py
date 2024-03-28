@@ -2,7 +2,7 @@ from telebot import types
 from telebot import TeleBot
 from ..db.dbAction import DB
 import os
-from func.shared.keyboard import get_existing_releases_keyboard
+from func.shared.keyboard import get_main_keyboard
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 
@@ -33,13 +33,13 @@ def showRelease(bot, message, db):
             
             # Отправляем сообщение, если хотя бы для одного артиста есть релизы
             if has_releases:
-                keyboard = get_existing_releases_keyboard()
+                keyboard = get_main_keyboard()
                 bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
         else:
             reply_message = "У вас пока нет артистов в базе данных."
-            bot.send_message(message.chat.id, reply_message)
+            bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
     except Exception as e:
         print("Ошибка при получении информации о релизах:", e)
         reply_message = "Произошла ошибка при получении информации о релизах."
-        bot.send_message(message.chat.id, reply_message)
+        bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
 
