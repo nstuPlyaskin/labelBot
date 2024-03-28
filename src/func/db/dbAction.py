@@ -555,9 +555,9 @@ class DB:
         try:
             # Здесь должна быть логика выполнения запроса к вашей базе данных
             # Пример:
-            query = f"SELECT {field_name} FROM releasesTable WHERE releaseID = {release_id}"
+            query = f"SELECT {field_name} FROM releasesTable WHERE releaseID = ?"
             # Предполагается, что вы уже имеете метод для выполнения запросов в вашей базе данных
-            result = self.execute_query(query)
+            result = self.execute_query(query, (release_id,))
 
             # Предполагается, что результат запроса возвращается в виде кортежа или списка кортежей
             if result:
