@@ -84,6 +84,16 @@ def save_user_answer(message: Message, bot: TeleBot):
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
     
+    # Проверяем, что текст сообщения существует и не равен None
+    if message.text is None:
+        current_question_index = user_states[user_id]['current_question_index']
+        current_question = addReleaseQuestions[current_question_index]
+        bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
+        bot.send_message(message.chat.id, f"{current_question}")
+        bot.register_next_step_handler(message, save_user_answer, bot=bot)
+        return
+
+    
     if message.text.strip().lower() == "отмена":
         bot.send_message(message.chat.id, "Создание релиза отменено.", reply_markup=get_main_keyboard())
         del user_states[user_id]
@@ -146,7 +156,7 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
     user_data = user_states[uid]['user_data']
     
     # Проверяем, что пользователь ввел "Да" или "Нет"
-    if message.text.lower() == "да":
+    if message.text and message.text.lower() == "да":
         db = DB(db_path)
         
         # Проверяем, существует ли релиз с таким именем у артиста
@@ -168,13 +178,19 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
             bot.send_message(message.chat.id, "Произошла ошибка при добавлении релиза.", reply_markup=get_main_keyboard())
         
         del user_states[uid]  # Удаляем состояние пользователя из словаря после завершения процесса
-    elif message.text.lower() == "нет":
+    elif message.text and message.text.lower() == "нет":
         del user_states[uid]  # Пользователь отказался от добавления релиза, удаляем состояние пользователя
         setup_addRelease_handler(bot, message)  # Начинаем процесс сначала
     else:
-        # Ожидаем следующего сообщения снова от пользователя
-        bot.register_next_step_handler(message, handle_confirmation_response, bot)
-        bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+        # Проверяем, что пользователь ввел только текст
+        if message.text:
+            bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+            bot.register_next_step_handler(message, handle_confirmation_response, bot)
+        else:
+            bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
+            bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+            bot.register_next_step_handler(message, handle_confirmation_response, bot)
+
 
 
 

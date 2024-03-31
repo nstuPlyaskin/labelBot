@@ -46,6 +46,13 @@ def save_user_answer(message: Message, bot: TeleBot):
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
     
+    # Проверяем тип сообщения
+    if message.content_type != 'text':
+        bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
+        bot.send_message(message.chat.id, addArtistQuestions[current_question_index])
+        bot.register_next_step_handler(message, save_user_answer, bot=bot)
+        return
+    
     # Проверяем, что текст сообщения существует и не равен None
     if message.text is not None and message.text.strip().lower() == "отмена":
         bot.send_message(message.chat.id, "Процедура создания артиста отменена.", reply_markup=get_main_keyboard())
@@ -70,6 +77,7 @@ def save_user_answer(message: Message, bot: TeleBot):
     user_states[user_id]['questions_summary'] = questions_summary
     send_next_question(bot, message)
 
+
 # Функция для отправки сообщения с подтверждением введенной информации
 def send_confirmation_message(bot: TeleBot, message: Message):
     user_id = message.from_user.id
@@ -89,6 +97,13 @@ def send_confirmation_message(bot: TeleBot, message: Message):
 def handle_confirmation_response(message: Message, bot: TeleBot):
     user_id = message.from_user.id
     user_data = user_states[user_id]['user_data']
+    
+    # Проверяем тип сообщения
+    if message.content_type != 'text':
+        bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
+        bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
+        bot.register_next_step_handler(message, handle_confirmation_response, bot)
+        return
     
     # Проверяем, что пользователь ввел "Да" или "Нет"
     if message.text.lower() == "да":
@@ -111,6 +126,7 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
         # Ожидаем следующего сообщения снова от пользователя
         bot.register_next_step_handler(message, handle_confirmation_response, bot)
+
 
 # Функция для создания клавиатуры с кнопками "Да" и "Нет" для подтверждения информации
 def get_confirmation_keyboard():

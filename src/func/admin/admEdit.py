@@ -55,7 +55,7 @@ def handle_edit_command(bot: TeleBot, message, db: DB):
 
             # Отправляем уведомление пользователю о изменении его релиза после успешного обновления
             notification = f"Модерация изменила данные в вашем релизе: Поле '{readable_field_name}' изменено с '{previous_value if previous_value else 'None'}' на '{new_value}'. Если вы не отправляли запрос на изменение данных, обратитесь в поддержку."
-            print(f"Изменение данных в релизе: Поле '{readable_field_name}' изменено с '{previous_value if previous_value else 'None'}' на '{new_value}'")
+            print(f"Изменение данных в релизе {release_id}: Поле '{readable_field_name}' изменено с '{previous_value if previous_value else 'None'}' на '{new_value}'")
             bot.send_message(uid, notification)
 
             bot.reply_to(message, f"Поле '{readable_field_name}' для релиза с ID {release_id} успешно обновлено.")

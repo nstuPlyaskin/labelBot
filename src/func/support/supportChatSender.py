@@ -28,7 +28,7 @@ def setup_support_handler(bot):
         if awaiting_question.get(message.chat.id, False):
             # Если пользователь решил отменить отправку в поддержку
             awaiting_question.pop(message.chat.id, None)
-            bot.send_message(message.chat.id, "Отправка в поддержку отменена.", reply_markup=get_cancel_keyboard())
+            bot.send_message(message.chat.id, "Отправка в поддержку отменена.", reply_markup=get_main_keyboard())
             return
 
 
@@ -47,13 +47,18 @@ def setup_support_handler(bot):
     # Обработчик вопроса от пользователя
     def handle_support_question(message):
         user_question = message.text  # Получаем вопрос пользователя
-        
-        # Проверяем, если сообщение "Отмена", то не сохраняем его в базу данных
-        if user_question.lower() == "отмена":
+
+        # Проверяем, если отправлена медиагруппа (несколько изображений)
+        if message.media_group_id:
+            bot.send_message(message.chat.id, "Отправлять можно только одно изображение. Пожалуйста, отправьте свой вопрос снова.")
+            return
+
+        # Проверяем, если сообщение не пустое и если это "Отмена", то не сохраняем его в базу данных
+        if message.text and message.text.lower() == "отмена":
             awaiting_question.pop(message.chat.id, None)  # Отменяем ожидание вопроса
             bot.send_message(message.chat.id, "Отправка в поддержку отменена.", reply_markup=get_main_keyboard())
             return
-        
+
         # Далее идет ваша обработка вопроса, сохранение в базу данных и отправка сообщения поддержке
 
         # Очищаем флаг ожидания вопроса

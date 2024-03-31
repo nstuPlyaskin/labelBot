@@ -97,7 +97,7 @@ def setup_artistInfo_handler(message):
 def handle_start(message):
     show_help_cmd(bot, message)
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(content_types=['text', 'photo', 'video', 'document', 'audio', 'voice', 'sticker'])
 def handle_all_messages(message):
     bot.send_message(chat_id=message.chat.id, text='Извините, я не распознал ваш запрос, выберите опцию используя клавиатуру чат-бота.', reply_markup=get_main_keyboard())
 
