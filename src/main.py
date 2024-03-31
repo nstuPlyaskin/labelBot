@@ -3,22 +3,19 @@ from func.admin import admQuestions, admAnswer, admUserList, admMessage, admRele
 from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList, releasePromo
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
+from func.shared.addNewUser import check_user_exists, add_new_user
 from func.support.supportChatSender import setup_support_handler
 
-# @FIX HELP!!!
 # @todo autobackup db - python file
-
-# @todo /start создает бд с uid чела потом /u будем делать по этой таблице!!!
-
-# @todo ошибка при обновлении данных в бд: бд выдает старые данные 
-# @todo /u not from support to artist? - mb new table with all users
-
-# @todo пусть /u выводит сначала админов (из вайтлиста)
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
 
 @bot.message_handler(commands=['start', 'menu'])
 def handle_start(message):
+    uid = message.from_user.id
+    userName = message.from_user.username
+    if not check_user_exists(uid):
+        add_new_user(uid, userName)
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=get_main_keyboard())
 
 @bot.message_handler(func=lambda message: message.text == "Добавить артиста")

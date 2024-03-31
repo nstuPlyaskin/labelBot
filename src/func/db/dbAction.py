@@ -106,8 +106,12 @@ class DB:
 
     def showUsers(self, bot, message):
         try:
+            # Загружаем список разрешенных пользователей из файла JSON
+            with open(whitelist_path, 'r') as f:
+                whitelist = json.load(f)
+            
             # Выполняем запрос для извлечения уникальных пользователей
-            self.cursor.execute("SELECT DISTINCT userName, uid FROM supportTable")
+            self.cursor.execute("SELECT DISTINCT userName, uid FROM usersTable")
             users = self.cursor.fetchall()
 
             # Проверяем, есть ли пользователи в базе данных
@@ -120,7 +124,9 @@ class DB:
                 for user in users:
                     # Проверяем, был ли пользователь уже выведен
                     if user not in displayed_users:
-                        user_list += f"Username: {user[0]}, UID: {user[1]}\n"
+                        # Проверяем, является ли пользователь администратором
+                        user_role = "Модерация" if user[1] in whitelist["allowed_users"] else "Пользователь"
+                        user_list += f"{user_role}: {user[0]}, UID: {user[1]}\n"
                         displayed_users.add(user)  # Добавляем пользователя в множество уже выведенных
                 # Отправляем список пользователей
                 bot.send_message(chat_id=message.chat.id, text="Список уникальных пользователей:\n\n" + user_list)
