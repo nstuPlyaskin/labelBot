@@ -2,8 +2,8 @@ from telebot import TeleBot, types
 from telebot.types import Message
 from ..db.dbAction import DB
 from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard, get_confirmation_keyboard, get_confirmation_and_cancel_keyboard
+from ..artist.addArtist import setup_addArtist_handler
 import json
-
 import os
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
@@ -180,8 +180,16 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
 
 def setup_addRelease_handler(bot: TeleBot, message: Message):
     user_id = message.from_user.id
+    db = DB(db_path)
+    
+    # Проверяем, есть ли у пользователя хотя бы один артист в базе данных
+    if not db.get_user_artists(user_id):
+        # Если у пользователя нет артистов, открываем форму создания артиста
+        bot.send_message(message.chat.id, "Для создания релиза сначала нужно добавить артиста.")
+        setup_addArtist_handler(bot, message)
+        return
+
     user_states[user_id] = {'current_question_index': 0, 'user_data': {}, 'questions_summary': []}
     keyboard = get_cancel_keyboard()
     bot.send_message(message.chat.id, "Начата процедура создания нового релиза, для отмены напишите 'Отмена'.", reply_markup=keyboard)
     send_next_question(bot, message)
-

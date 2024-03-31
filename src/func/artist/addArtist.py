@@ -46,8 +46,8 @@ def save_user_answer(message: Message, bot: TeleBot):
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
     
-    # Проверяем, написал ли пользователь "Отмена"
-    if message.text.strip().lower() == "отмена":
+    # Проверяем, что текст сообщения существует и не равен None
+    if message.text is not None and message.text.strip().lower() == "отмена":
         bot.send_message(message.chat.id, "Процедура создания артиста отменена.", reply_markup=get_main_keyboard())
         del user_states[user_id]
         return

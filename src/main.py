@@ -1,13 +1,18 @@
 import telebot
 from func.admin import admQuestions, admAnswer, admUserList, admMessage, admReleases, admModerate, admEdit, admList
-from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList
+from func.artist import addArtist, addRelease, artistInfo, artistList, addRelease, releaseInfo, releaseList, releasePromo
 from func.shared.keyboard import get_main_keyboard
 from func.shared.help import show_help_cmd
-from func.support import supportChatSender
+from func.support.supportChatSender import setup_support_handler
 
-# @todo autobackup db
+# @FIX HELP!!!
+# @todo autobackup db - python file
+
+# @todo /start создает бд с uid чела потом /u будем делать по этой таблице!!!
+
 # @todo ошибка при обновлении данных в бд: бд выдает старые данные 
-# @todo /u not from support to artist?
+# @todo /u not from support to artist? - mb new table with all users
+
 # @todo пусть /u выводит сначала админов (из вайтлиста)
 
 bot = telebot.TeleBot('6966429364:AAHvq_OtGRezUpEjje_RlIGPFV7b9PprR1w') 
@@ -42,6 +47,15 @@ def handle_add_release(message):
 @bot.message_handler(func=lambda message: message.text == "Вернуться в меню")
 def handle_openMenu_releases(message):
     bot.send_message(chat_id=message.chat.id, text='Выберите опцию:', reply_markup=get_main_keyboard())
+
+@bot.message_handler(func=lambda message: message.text == "Отправить на промо")
+def handle_releasePromo(message):
+    releasePromo.setup_releasePromo_handler(bot, message)  # Pass bot as an argument
+
+@bot.message_handler(func=lambda message: message.text == "Поддержка")
+def handle_support(message):
+    support_handler = setup_support_handler(bot)  # Получаем функцию из модуля
+    support_handler(message)  # Вызываем эту функцию, чтобы обработать сообщение
 
 @bot.message_handler(commands=['question', 'questions', 'q'])
 def handle_questions(message):
@@ -83,6 +97,8 @@ def setup_artistInfo_handler(message):
 def handle_start(message):
     show_help_cmd(bot, message)
 
-supportChatSender.setup_support_handler(bot)
+@bot.message_handler(func=lambda message: True)
+def handle_all_messages(message):
+    bot.send_message(chat_id=message.chat.id, text='Извините, я не распознал ваш запрос, выберите опцию используя клавиатуру чат-бота.', reply_markup=get_main_keyboard())
 
 bot.polling(none_stop=True)

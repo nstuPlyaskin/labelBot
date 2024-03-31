@@ -544,9 +544,6 @@ class DB:
             return None
 
 
-
-        
-
     def get_field_value(self, release_id, field_name):
         """
         Получает значение поля для указанного релиза.
@@ -579,5 +576,63 @@ class DB:
             print(f"Error while executing query: {e}")
             return None
         
+
+    def savePromoRelease(self, release_data):
+        try:
+            self.cursor.execute("""
+                INSERT INTO releasesPromo (artistNickName, feat, releaseName, releaseType, releasePitch, releaseGenre, releaseUPC, releaseDescription, releaseMarketing, releaseLinkFiles, artistContacts, artistLinkPhoto)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                release_data["artistNickName"], release_data["feat"], release_data["releaseName"], release_data["releaseType"],
+                release_data["releasePitch"], release_data["releaseGenre"], release_data["releaseUPC"],
+                release_data["releaseDescription"], release_data["releaseMarketing"], release_data["releaseLinkFiles"],
+                release_data["artistContacts"], release_data["artistLinkPhoto"]
+            ))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error occurred while saving promo release: {str(e)}")
+            return False
+        
+    def get_releases_by_uid(self, uid):
+        try:
+            # Выполняем запрос к базе данных, чтобы получить список релизов для конкретного пользователя
+            query = """
+                SELECT releasesTable.releaseName
+                FROM releasesTable
+                INNER JOIN artistsTable ON releasesTable.artistID = artistsTable.artistID
+                WHERE artistsTable.uid = ?
+            """
+            self.cursor.execute(query, (uid,))
+            releases = self.cursor.fetchall()
+            return releases
+        except sqlite3.Error as e:
+            print("Ошибка при получении релизов по uid:", e)
+            return None
+        
+
+    # В классе DB добавим метод get_release_details_by_name
+    def get_release_details_by_name(self, artistNickName, release_name):
+        try:
+            self.cursor.execute("""
+                SELECT releasesTable.releaseName, releasesTable.releaseGenre, releasesTable.releaseUPC,
+                    artistsTable.artistContacts, artistsTable.artistLinkPhoto
+                FROM releasesTable
+                INNER JOIN artistsTable ON releasesTable.artistID = artistsTable.artistID
+                WHERE releasesTable.artistNickName = ? AND releasesTable.releaseName = ?
+            """, (artistNickName, release_name))
+            release_details = self.cursor.fetchone()
+            
+            # Проверяем, что release_details не равен None и содержит не менее 5 элементов
+            if release_details and len(release_details) >= 5:
+                return release_details
+            else:
+                return None
+        except sqlite3.Error as e:
+            print("Ошибка при получении данных о релизе по имени:", e)
+            return None
+
+
+
     def close(self):
         self.conn.close()

@@ -36,9 +36,11 @@ def showRelease(bot, message, db):
                 keyboard = get_main_keyboard()
                 bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
         else:
+            keyboard = get_main_keyboard()
             reply_message = "У вас пока нет артистов в базе данных."
             bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
     except Exception as e:
+        keyboard = get_main_keyboard()
         print("Ошибка при получении информации о релизах:", e)
         reply_message = "Произошла ошибка при получении информации о релизах."
         bot.send_message(message.chat.id, reply_message, reply_markup=keyboard)
