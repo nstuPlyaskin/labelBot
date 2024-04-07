@@ -2,9 +2,7 @@ from telebot import TeleBot, types
 from telebot.types import Message
 from ..db.dbAction import DB
 from ..shared.keyboard import get_cancel_keyboard, get_existing_artist_keyboard, get_main_keyboard
-import json
-
-import os
+import json, os
 
 db_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'support')
 text_path = os.path.join(os.path.dirname(__file__), '..', '..', 'db', 'texts.json')
@@ -20,9 +18,33 @@ keys = ["artistNickName", "artistRealName", "artistSpotify", "artistContacts"]
 
 # Словарь для хранения данных пользователя
 user_states = {}
+user_spam_attempts = {}
+
+# Максимальное количество попыток запуска процедуры добавления артиста подряд
+MAX_SPAM_ATTEMPTS = 3
+
+# Функция для начала процедуры создания нового артиста
+def setup_addArtist_handler(bot, message: Message):
+    user_id = message.from_user.id
+
+    # Проверяем, не запущена ли уже процедура добавления артиста для данного пользователя
+    if user_id in user_states:
+        bot.send_message(message.chat.id, "Процедура создания артиста уже запущена.")
+        return
+
+    # Проверяем, не заблокирован ли пользователь от запуска процедуры добавления артиста
+    if user_id in user_spam_attempts and user_spam_attempts[user_id] >= MAX_SPAM_ATTEMPTS:
+        bot.send_message(message.chat.id, "Превышено максимальное количество попыток запуска процедуры добавления артиста.")
+        return
+
+    # Если проверки прошли успешно, запускаем процедуру добавления артиста
+    user_states[user_id] = {'current_question_index': 0, 'user_data': {'uid': user_id}, 'questions_summary': []}
+    keyboard = get_cancel_keyboard()
+    bot.send_message(message.chat.id, "Начата процедура создания нового артиста, для отмены напишите 'Отмена'.", reply_markup=keyboard)
+    send_next_question(bot, message)
 
 # Функция для отправки следующего вопроса и регистрации обработчика ответа
-def send_next_question(bot: TeleBot, message: Message):
+def send_next_question(bot, message: Message):
     user_id = message.from_user.id
     if user_id not in user_states:
         user_states[user_id] = {'current_question_index': 0, 'user_data': {}, 'questions_summary': []}
@@ -77,9 +99,8 @@ def save_user_answer(message: Message, bot: TeleBot):
     user_states[user_id]['questions_summary'] = questions_summary
     send_next_question(bot, message)
 
-
 # Функция для отправки сообщения с подтверждением введенной информации
-def send_confirmation_message(bot: TeleBot, message: Message):
+def send_confirmation_message(bot, message: Message):
     user_id = message.from_user.id
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
@@ -91,10 +112,10 @@ def send_confirmation_message(bot: TeleBot, message: Message):
     final_question = "Вы уверены, что хотите добавить этого артиста?"
     bot.send_message(message.chat.id, f"Пожалуйста, подтвердите введенную информацию:\n\n{confirmation_text}\n{final_question}", 
                      reply_markup=get_confirmation_keyboard())
-    bot.register_next_step_handler(message, handle_confirmation_response, bot=bot)
+    bot.register_next_step_handler(message, handle_confirmation_response)
 
 # Функция для обработки ответа пользователя на подтверждение информации
-def handle_confirmation_response(message: Message, bot: TeleBot):
+def handle_confirmation_response(bot, message: Message):
     user_id = message.from_user.id
     user_data = user_states[user_id]['user_data']
     
@@ -102,7 +123,7 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
     if message.content_type != 'text':
         bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
-        bot.register_next_step_handler(message, handle_confirmation_response, bot)
+        bot.register_next_step_handler(message, handle_confirmation_response)
         return
     
     # Проверяем, что пользователь ввел "Да" или "Нет"
@@ -125,8 +146,7 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
         # Если пользователь ввел что-то другое, просим его ввести "Да" или "Нет" повторно
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
         # Ожидаем следующего сообщения снова от пользователя
-        bot.register_next_step_handler(message, handle_confirmation_response, bot)
-
+        bot.register_next_step_handler(message, handle_confirmation_response)
 
 # Функция для создания клавиатуры с кнопками "Да" и "Нет" для подтверждения информации
 def get_confirmation_keyboard():
@@ -135,12 +155,4 @@ def get_confirmation_keyboard():
     button_no = types.KeyboardButton("Нет")
     keyboard.add(button_yes, button_no)
     return keyboard
-
-# Функция для начала процедуры создания нового артиста
-def setup_addArtist_handler(bot: TeleBot, message: Message):
-    user_id = message.from_user.id
-    user_states[user_id] = {'current_question_index': 0, 'user_data': {'uid': user_id}, 'questions_summary': []}
-    keyboard = get_cancel_keyboard()
-    bot.send_message(message.chat.id, "Начата процедура создания нового артиста, для отмены напишите 'Отмена'.", reply_markup=keyboard)
-    send_next_question(bot, message)
 
