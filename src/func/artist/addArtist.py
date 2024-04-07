@@ -48,14 +48,14 @@ def send_next_question(bot, message: Message):
     user_id = message.from_user.id
     if user_id not in user_states:
         user_states[user_id] = {'current_question_index': 0, 'user_data': {}, 'questions_summary': []}
-        
+
     current_question_index = user_states[user_id]['current_question_index']
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
-    
+
     if current_question_index < len(addArtistQuestions):
         keyboard = get_cancel_keyboard() if current_question_index > 0 else None
-        
+
         bot.send_message(message.chat.id, addArtistQuestions[current_question_index], reply_markup=keyboard)
         bot.register_next_step_handler(message, save_user_answer, bot=bot)
     else:
@@ -67,30 +67,30 @@ def save_user_answer(message: Message, bot: TeleBot):
     current_question_index = user_states[user_id]['current_question_index']
     user_data = user_states[user_id]['user_data']
     questions_summary = user_states[user_id]['questions_summary']
-    
+
     # Проверяем тип сообщения
     if message.content_type != 'text':
         bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
         bot.send_message(message.chat.id, addArtistQuestions[current_question_index])
         bot.register_next_step_handler(message, save_user_answer, bot=bot)
         return
-    
+
     # Проверяем, что текст сообщения существует и не равен None
     if message.text is not None and message.text.strip().lower() == "отмена":
         bot.send_message(message.chat.id, "Процедура создания артиста отменена.", reply_markup=get_main_keyboard())
         del user_states[user_id]
         return
-    
+
     current_key = keys[current_question_index]
     user_answer = message.text.strip()
-    
+
     if current_key == "artistNickName":
         db = DB(db_path)
         if db.check_artist_exists(user_answer):
             bot.send_message(message.chat.id, "Такой артист уже существует. Пожалуйста, введите другой никнейм:")
             bot.register_next_step_handler(message, save_user_answer, bot=bot)
             return
-    
+
     user_data[current_key] = user_answer
     questions_summary.append(f"{addArtistQuestions[current_question_index]} {user_answer}")
     current_question_index += 1
@@ -110,22 +110,22 @@ def send_confirmation_message(bot, message: Message):
         confirmation_text += f"{question} {summary.split(': ')[1]}\n"  # Используем только ответы пользователя
 
     final_question = "Вы уверены, что хотите добавить этого артиста?"
-    bot.send_message(message.chat.id, f"Пожалуйста, подтвердите введенную информацию:\n\n{confirmation_text}\n{final_question}", 
+    bot.send_message(message.chat.id, f"Пожалуйста, подтвердите введенную информацию:\n\n{confirmation_text}\n{final_question}",
                      reply_markup=get_confirmation_keyboard())
-    bot.register_next_step_handler(message, handle_confirmation_response)
+    bot.register_next_step_handler(message, lambda msg: handle_confirmation_response(bot, msg))
 
 # Функция для обработки ответа пользователя на подтверждение информации
 def handle_confirmation_response(bot, message: Message):
     user_id = message.from_user.id
     user_data = user_states[user_id]['user_data']
-    
+
     # Проверяем тип сообщения
     if message.content_type != 'text':
         bot.send_message(message.chat.id, "Используйте только текст, медиа не подойдет.")
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
-        bot.register_next_step_handler(message, handle_confirmation_response)
+        bot.register_next_step_handler(message, lambda msg: handle_confirmation_response(bot, msg))
         return
-    
+
     # Проверяем, что пользователь ввел "Да" или "Нет"
     if message.text.lower() == "да":
         db = DB(db_path)
@@ -146,7 +146,7 @@ def handle_confirmation_response(bot, message: Message):
         # Если пользователь ввел что-то другое, просим его ввести "Да" или "Нет" повторно
         bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
         # Ожидаем следующего сообщения снова от пользователя
-        bot.register_next_step_handler(message, handle_confirmation_response)
+        bot.register_next_step_handler(message, lambda msg: handle_confirmation_response(bot, msg))
 
 # Функция для создания клавиатуры с кнопками "Да" и "Нет" для подтверждения информации
 def get_confirmation_keyboard():
@@ -155,4 +155,3 @@ def get_confirmation_keyboard():
     button_no = types.KeyboardButton("Нет")
     keyboard.add(button_yes, button_no)
     return keyboard
-
