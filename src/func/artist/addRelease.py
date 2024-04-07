@@ -17,7 +17,6 @@ with open(text_path, 'r', encoding='utf-8') as file:
 addReleaseQuestions = texts["addReleaseQuestions"]
 addReleaseConfirmationQuestions = texts["addReleaseConfirmationQuestions"]
 
-
 keys = ["artistNickName", "feat", "releaseName", "releaseDate", "releaseGenre", "releaseTiming", "releaseExplicit", "releaseLyrics", "releaseLinkFiles"]
 
 user_states = {}
@@ -191,9 +190,6 @@ def handle_confirmation_response(message: Message, bot: TeleBot):
             bot.send_message(message.chat.id, "Пожалуйста, введите 'Да' или 'Нет'.")
             bot.register_next_step_handler(message, handle_confirmation_response, bot)
 
-
-
-
 def setup_addRelease_handler(bot: TeleBot, message: Message):
     user_id = message.from_user.id
     db = DB(db_path)
@@ -204,7 +200,12 @@ def setup_addRelease_handler(bot: TeleBot, message: Message):
         bot.send_message(message.chat.id, "Для создания релиза сначала нужно добавить артиста.")
         setup_addArtist_handler(bot, message)
         return
-
+    
+    # Проверяем, не запущена ли уже процедура создания релиза для данного пользователя
+    if user_id in user_states:
+        bot.send_message(message.chat.id, "Процедура создания релиза уже запущена.")
+        return
+    
     user_states[user_id] = {'current_question_index': 0, 'user_data': {}, 'questions_summary': []}
     keyboard = get_cancel_keyboard()
     bot.send_message(message.chat.id, "Начата процедура создания нового релиза, для отмены напишите 'Отмена'.", reply_markup=keyboard)
