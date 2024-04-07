@@ -16,7 +16,7 @@ MANAGEMENT_COMMANDS = ['Информация об артисте', 'Загруз
 
 def is_management_command(text):
     # Проверяем, является ли текст командой для управления
-    return text.lower() in [command.lower() for command in MANAGEMENT_COMMANDS]
+    return isinstance(text, str) and text.lower() in [command.lower() for command in MANAGEMENT_COMMANDS]
 
 def setup_support_handler(bot):
     # Создаем словарь для отслеживания статуса обработки вопроса для каждого пользователя
@@ -55,6 +55,12 @@ def setup_support_handler(bot):
 
         # Проверяем, если сообщение не пустое и если это "Отмена", то не сохраняем его в базу данных
         if message.text and message.text.lower() == "отмена":
+            awaiting_question.pop(message.chat.id, None)  # Отменяем ожидание вопроса
+            bot.send_message(message.chat.id, "Отправка в поддержку отменена.", reply_markup=get_main_keyboard())
+            return
+        
+        # Проверяем, если сообщение не пустое и если это команда управления, то не сохраняем его в базу данных
+        if message.text and message.text.lower() in [command.lower() for command in MANAGEMENT_COMMANDS]:
             awaiting_question.pop(message.chat.id, None)  # Отменяем ожидание вопроса
             bot.send_message(message.chat.id, "Отправка в поддержку отменена.", reply_markup=get_main_keyboard())
             return
